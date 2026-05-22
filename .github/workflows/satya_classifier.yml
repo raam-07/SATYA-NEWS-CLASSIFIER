@@ -2,9 +2,13 @@ name: Satya Classifier Pipeline
 
 on:
   schedule:
-    # Runs every 0.5 hours
+    # Runs every 30 minutes
     - cron: '*/30 * * * *'
   workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+concurrency:
+  group: satya-classifier
+  cancel-in-progress: false  # Wait for running job to finish, don't cancel it
 
 jobs:
   classify:
