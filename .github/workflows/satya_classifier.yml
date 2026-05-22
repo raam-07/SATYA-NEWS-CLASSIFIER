@@ -2,8 +2,8 @@ name: Satya Classifier Pipeline
 
 on:
   schedule:
-    # Runs every 1 hours
-    - cron: '0 */1 * * *'
+    # Runs every 0.5 hours
+    - cron: '*/30 * * * *'
   workflow_dispatch: # Allows manual trigger from GitHub Actions UI
 
 jobs:
