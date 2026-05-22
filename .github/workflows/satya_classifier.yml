@@ -35,7 +35,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install gspread oauth2client llama-cpp-python
+          pip install gspread oauth2client llama-cpp-python huggingface_hub
 
       # 5. Cache the Gemma model so it doesn't download every run
       - name: Cache Gemma Model
@@ -43,27 +43,39 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./models
-          key: gemma-2b-it-q6_k_m
+          key: gemma-2b-it-q6_k_m-v2
 
       # 6. Download the Gemma model only if not cached
       - name: Download Gemma Model
         if: steps.cache-model.outputs.cache-hit != 'true'
+        env:
+          HUGGING_FACE_HUB_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           mkdir -p ./models
-          echo "Downloading Gemma 2B model..."
-          curl -L \
-            "https://huggingface.co/lmstudio-community/gemma-2b-it-GGUF/resolve/main/gemma-2b-it-q6_k_m.gguf" \
-            -o ./models/gemma-2b-it-q6_k_m.gguf
+          echo "Downloading Gemma 2B model via huggingface_hub..."
+          python -c "
+          from huggingface_hub import hf_hub_download
+          hf_hub_download(
+            repo_id='lmstudio-community/gemma-2b-it-GGUF',
+            filename='gemma-2b-it-q6_k_m.gguf',
+            local_dir='./models'
+          )
+          "
           echo "Model downloaded successfully."
 
-      # 7. Run the classifier
+      # 7. Verify model exists
+      - name: Verify Model
+        run: |
+          ls -lh ./models/
+
+      # 8. Run the classifier
       - name: Run Satya Classifier
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: |
           python satya.py
 
-      # 8. Upload logs as artifact for debugging
+      # 9. Upload logs as artifact for debugging
       - name: Upload Log File
         if: always()
         uses: actions/upload-artifact@v4
