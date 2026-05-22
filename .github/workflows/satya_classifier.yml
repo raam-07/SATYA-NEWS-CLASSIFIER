@@ -1,0 +1,73 @@
+name: Satya Classifier Pipeline
+
+on:
+  # schedule:
+  #   # Runs every 6 hours
+  #   - cron: '0 */6 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350 # Just under GitHub's 6hr limit
+
+    steps:
+      # 1. Checkout the repo
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 3. Cache pip dependencies for faster runs
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-satya-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-satya-
+
+      # 4. Install dependencies
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install gspread oauth2client llama-cpp-python
+
+      # 5. Cache the Gemma model so it doesn't download every run
+      - name: Cache Gemma Model
+        id: cache-model
+        uses: actions/cache@v4
+        with:
+          path: ./models
+          key: gemma-2b-it-q6_k_m
+
+      # 6. Download the Gemma model only if not cached
+      - name: Download Gemma Model
+        if: steps.cache-model.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ./models
+          echo "Downloading Gemma 2B model..."
+          curl -L \
+            "https://huggingface.co/lmstudio-community/gemma-2b-it-GGUF/resolve/main/gemma-2b-it-q6_k_m.gguf" \
+            -o ./models/gemma-2b-it-q6_k_m.gguf
+          echo "Model downloaded successfully."
+
+      # 7. Run the classifier
+      - name: Run Satya Classifier
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python satya.py
+
+      # 8. Upload logs as artifact for debugging
+      - name: Upload Log File
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: satya-classifier-log-${{ github.run_number }}
+          path: "*.log"
+          retention-days: 7
