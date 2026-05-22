@@ -43,21 +43,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./models
-          key: gemma-2b-it-q6_k_m-v2
+          key: gemma-2-2b-it-Q6_K_L
 
       # 6. Download the Gemma model only if not cached
       - name: Download Gemma Model
         if: steps.cache-model.outputs.cache-hit != 'true'
-        env:
-          HUGGING_FACE_HUB_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           mkdir -p ./models
-          echo "Downloading Gemma 2B model via huggingface_hub..."
+          echo "Downloading Gemma 2B IT model via huggingface_hub..."
           python -c "
           from huggingface_hub import hf_hub_download
           hf_hub_download(
-            repo_id='lmstudio-community/gemma-2b-it-GGUF',
-            filename='gemma-2b-it-q6_k_m.gguf',
+            repo_id='bartowski/gemma-2-2b-it-GGUF',
+            filename='gemma-2-2b-it-Q6_K_L.gguf',
             local_dir='./models'
           )
           "
