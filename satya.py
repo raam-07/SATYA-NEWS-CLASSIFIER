@@ -25,7 +25,7 @@ SOURCE_WORKSHEET_NAME = 'Sheet1'
 DEST_SHEET_NAME = 'Satya Classified'
 DEST_WORKSHEET_NAME = 'Sheet1'
 
-MODEL_PATH = "./models/gemma-2b-it-q6_k_m.gguf"
+MODEL_PATH = "./models/gemma-2-2b-it-Q6_K_L.gguf"
 
 MAX_ARTICLES_TO_PROCESS = 1
 MAX_RUNTIME_SECONDS = 5 * 3600
