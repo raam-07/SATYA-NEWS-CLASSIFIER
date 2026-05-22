@@ -27,7 +27,7 @@ DEST_WORKSHEET_NAME = 'Sheet1'
 
 MODEL_PATH = "./models/gemma-2-2b-it-Q6_K_L.gguf"
 
-MAX_ARTICLES_TO_PROCESS = 1
+MAX_ARTICLES_TO_PROCESS = 300
 MAX_RUNTIME_SECONDS = 5 * 3600
 
 logging.basicConfig(
@@ -37,7 +37,6 @@ logging.basicConfig(
 
 # ==============================================================================
 # --- RULE-BASED ENTITY LIBRARY ---
-# This is your static knowledge. Extend this list over time.
 # ==============================================================================
 
 PARTIES = [
@@ -92,7 +91,7 @@ STATES = [
     "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra",
     "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha",
     "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
-    "Tripura", "Uttar Pradesh", "UP", "Uttarakhand", "West Bengal",
+    "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
     "Delhi", "Jammu", "Kashmir", "Ladakh", "Puducherry",
     "Chandigarh", "Andaman", "Lakshadweep"
 ]
@@ -161,8 +160,8 @@ TOPIC_KEYWORDS = {
 
 def rule_based_classify(title, content):
     """Scans title + content for known entities. Returns structured tags."""
-    text = f"{title} {content}".lower()
     full_text = f"{title} {content}"
+    text_lower = full_text.lower()
 
     # Party detection
     parties_found = []
@@ -175,16 +174,22 @@ def rule_based_classify(title, content):
     ministers_found = []
     for minister in MINISTERS:
         if re.search(r'\b' + re.escape(minister) + r'\b', full_text, re.IGNORECASE):
-            canonical = minister  # Can be improved with alias mapping later
-            if canonical not in ministers_found:
-                ministers_found.append(canonical)
+            if minister not in ministers_found:
+                ministers_found.append(minister)
 
-    # State detection
+    # State detection — only match full state names to avoid false positives like "UP"
     states_found = []
     for state in STATES:
-        if re.search(r'\b' + re.escape(state) + r'\b', full_text, re.IGNORECASE):
-            if state not in states_found:
-                states_found.append(state)
+        # Skip short ambiguous names for regex — require full word boundary match
+        if len(state) <= 3:
+            # Strict: must be surrounded by spaces or punctuation, not part of a word
+            if re.search(r'(?<!\w)' + re.escape(state) + r'(?!\w)', full_text):
+                if state not in states_found:
+                    states_found.append(state)
+        else:
+            if re.search(r'\b' + re.escape(state) + r'\b', full_text, re.IGNORECASE):
+                if state not in states_found:
+                    states_found.append(state)
 
     # City detection
     cities_found = []
@@ -197,7 +202,7 @@ def rule_based_classify(title, content):
     topics_found = []
     for topic, keywords in TOPIC_KEYWORDS.items():
         for kw in keywords:
-            if kw.lower() in text:
+            if kw.lower() in text_lower:
                 if topic not in topics_found:
                     topics_found.append(topic)
                 break
@@ -250,13 +255,9 @@ Article: {rephrased_article}
         )
 
         raw = response['choices'][0].get('text', '').strip()
-
-        # Clean up any markdown fences if Gemma adds them
         raw = re.sub(r'```json|```', '', raw).strip()
-
         parsed = json.loads(raw)
 
-        # Validate and sanitize
         category = parsed.get('category', 'other').lower()
         if category not in VALID_CATEGORIES:
             category = 'other'
@@ -339,18 +340,14 @@ def main():
     source_sheet, dest_sheet = connect_to_sheets()
     existing_urls = get_existing_urls(dest_sheet)
 
-    logging.info("Fetching latest records from processed sheet...")
+    logging.info("Fetching all records from processed sheet...")
     raw_source_data = source_sheet.col_values(1)
 
-    # Take the latest N articles
-    articles_to_check = (
-        raw_source_data[-MAX_ARTICLES_TO_PROCESS:]
-        if len(raw_source_data) > MAX_ARTICLES_TO_PROCESS
-        else raw_source_data
-    )
+    # Reverse so we process newest articles first
+    raw_source_data = list(reversed(raw_source_data))
 
     parsed_articles = []
-    for cell in articles_to_check:
+    for cell in raw_source_data:
         if not cell:
             continue
         try:
@@ -358,12 +355,17 @@ def main():
         except json.JSONDecodeError:
             continue
 
-    logging.info(f"Evaluating {len(parsed_articles)} articles for classification...")
+    logging.info(f"Total articles in source sheet: {len(parsed_articles)}. Scanning for unclassified ones...")
 
     llm = None
     processed_count = 0
 
     for article in parsed_articles:
+
+        # Stop if we hit our max for this run
+        if processed_count >= MAX_ARTICLES_TO_PROCESS:
+            logging.info(f"Reached max limit of {MAX_ARTICLES_TO_PROCESS} for this run. Stopping.")
+            break
 
         # Global timeout check
         if time.time() - start_time > MAX_RUNTIME_SECONDS:
@@ -374,7 +376,7 @@ def main():
         if not url:
             continue
 
-        # Skip already classified
+        # Already classified — skip but keep scanning
         if url in existing_urls:
             continue
 
@@ -393,7 +395,6 @@ def main():
             rule_tags = rule_based_classify(title, content)
 
             # --- PASS 2: Gemma AI ---
-            # Lazy load LLM only when we have real work
             if llm is None:
                 logging.info("Loading Gemma model...")
                 if not os.path.exists(MODEL_PATH):
@@ -409,7 +410,7 @@ def main():
 
             ai_tags = ai_classify(llm, title, rephrased)
 
-            # --- MERGE: Combine original article + both tag sets ---
+            # --- MERGE ---
             enriched_article = {
                 **article,
                 **rule_tags,
@@ -419,12 +420,12 @@ def main():
 
             safe_json = json.dumps(enriched_article, ensure_ascii=False)
 
-            # --- SAVE to Classified Sheet ---
+            # --- SAVE ---
             dest_sheet.append_row([safe_json])
             existing_urls.add(url)
             processed_count += 1
 
-            logging.info(f"Saved classified article [{processed_count}]: {title}")
+            logging.info(f"Saved [{processed_count}]: {title}")
             logging.info(f"  Category: {ai_tags['category']} | Sentiment: {ai_tags['sentiment']} | Target: {ai_tags['sentiment_target']}")
             logging.info(f"  Parties: {rule_tags['party_mentioned']} | Ministers: {rule_tags['ministers_mentioned']}")
             logging.info(f"  States: {rule_tags['states_mentioned']} | Topics: {rule_tags['topic_tags']}")
@@ -434,7 +435,7 @@ def main():
         except Exception as e:
             logging.error(f"Failed to classify article '{title}': {e}")
 
-    logging.info(f"--- Classifier Pipeline Finished. Classified {processed_count} new articles. ---")
+    logging.info(f"--- Classifier Pipeline Finished. Classified {processed_count} new articles this run. ---")
 
 
 if __name__ == '__main__':
