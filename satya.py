@@ -27,7 +27,7 @@ DEST_WORKSHEET_NAME = 'Sheet1'
 
 MODEL_PATH = "./models/gemma-2-2b-it-Q6_K_L.gguf"
 
-MAX_ARTICLES_TO_PROCESS = 300
+MAX_ARTICLES_TO_PROCESS = 1000
 MAX_RUNTIME_SECONDS = 5 * 3600
 
 logging.basicConfig(
