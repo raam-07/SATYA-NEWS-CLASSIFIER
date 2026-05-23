@@ -27,7 +27,7 @@ DEST_WORKSHEET_NAME = 'Sheet1'
 
 MODEL_PATH = "./models/gemma-2-2b-it-Q6_K_L.gguf"
 
-MAX_ARTICLES_TO_PROCESS = 1000
+MAX_ARTICLES_TO_PROCESS = 700
 MAX_RUNTIME_SECONDS = 5 * 3600
 
 logging.basicConfig(
@@ -107,51 +107,97 @@ CITIES = [
 ]
 
 TOPIC_KEYWORDS = {
-    "rape_sexual_crime": [
-        "rape", "sexual assault", "molestation", "gangrape", "gang rape",
-        "sexual harassment", "POCSO", "minor abused", "woman attacked"
-    ],
-    "corruption_scam": [
-        "scam", "corruption", "bribe", "embezzlement", "fraud", "money laundering",
-        "ED raid", "CBI raid", "disproportionate assets", "hawala", "kickback",
-        "tender scam", "coal scam", "land scam"
-    ],
-    "crime_violence": [
-        "murder", "killed", "lynching", "mob violence", "riot", "attack",
-        "assault", "kidnap", "abduction", "encounter", "custodial death",
-        "police brutality", "communal violence"
-    ],
-    "economy": [
-        "GDP", "inflation", "unemployment", "economy", "recession", "market",
-        "rupee", "RBI", "budget", "tax", "GST", "fiscal", "trade deficit",
-        "foreign investment", "FDI", "stock market", "sensex", "nifty"
-    ],
-    "foreign_policy": [
-        "China", "Pakistan", "USA", "Russia", "border", "LAC", "LoC",
-        "United Nations", "UN", "bilateral", "diplomatic", "sanctions",
-        "treaty", "agreement", "foreign minister", "embassy", "consulate"
-    ],
-    "infrastructure": [
-        "road", "highway", "expressway", "bridge", "railway", "airport",
-        "metro", "construction", "smart city", "housing", "electricity",
-        "power cut", "water crisis", "flood", "drought"
-    ],
-    "health": [
-        "hospital", "doctor", "medicine", "vaccine", "disease", "epidemic",
-        "COVID", "dengue", "malaria", "health ministry", "AIIMS", "medical"
-    ],
-    "education": [
-        "school", "college", "university", "student", "education",
-        "exam", "NEET", "JEE", "UGC", "curriculum", "dropout"
-    ],
-    "farmer_agriculture": [
-        "farmer", "agriculture", "crop", "MSP", "kisan", "irrigation",
-        "fertilizer", "pesticide", "farm law", "agri", "rural"
-    ],
-    "protest_opposition": [
-        "protest", "rally", "demonstration", "strike", "bandh",
-        "opposition", "arrested", "detained", "lathi charge", "teargas"
-    ]
+    "rape_sexual_crime": {
+        "keywords": [
+            "rape", "sexual assault", "molestation", "gangrape", "gang rape",
+            "sexual harassment", "POCSO", "minor abused", "woman attacked",
+            "acid attack", "outrage of modesty"
+        ],
+        "min_hits": 1,  # Any single mention is serious enough
+        "strong_keywords": ["rape", "gangrape", "sexual assault", "POCSO"]
+    },
+    "corruption_scam": {
+        "keywords": [
+            "scam", "corruption", "bribe", "embezzlement", "money laundering",
+            "ED raid", "CBI raid", "disproportionate assets", "hawala", "kickback",
+            "tender scam", "coal scam", "land scam", "electoral bond", "benami"
+        ],
+        "min_hits": 1,
+        "strong_keywords": ["scam", "corruption", "bribe", "ED raid", "CBI raid", "hawala"]
+    },
+    "crime_violence": {
+        "keywords": [
+            "murder", "killed", "lynching", "mob violence", "riot",
+            "assault", "kidnap", "abduction", "encounter killing", "custodial death",
+            "police brutality", "communal violence", "stabbed", "shot dead"
+        ],
+        "min_hits": 1,
+        "strong_keywords": ["murder", "lynching", "mob violence", "custodial death", "encounter killing", "killed"]
+    },
+    "economy": {
+        "keywords": [
+            "GDP", "inflation", "unemployment", "recession", "rupee",
+            "RBI", "budget", "GST", "trade deficit", "FDI",
+            "sensex", "nifty", "fiscal deficit", "interest rate",
+            "economic growth", "per capita income"
+        ],
+        "min_hits": 2,  # Needs at least 2 hits — "economy" alone is too generic
+        "strong_keywords": ["GDP", "inflation", "unemployment", "RBI", "fiscal deficit"]
+    },
+    "foreign_policy": {
+        "keywords": [
+            "China", "Pakistan", "bilateral", "diplomatic", "sanctions",
+            "treaty", "foreign minister", "embassy", "consulate",
+            "LAC", "LoC", "border dispute", "foreign policy", "geopolitical"
+        ],
+        "min_hits": 2,
+        "strong_keywords": ["LAC", "LoC", "border dispute", "bilateral", "diplomatic", "sanctions"]
+    },
+    "infrastructure": {
+        "keywords": [
+            "expressway", "bridge collapse", "railway project", "airport expansion",
+            "metro rail", "smart city", "power outage", "water scarcity",
+            "flood damage", "drought relief", "road construction", "highway"
+        ],
+        "min_hits": 2,
+        "strong_keywords": ["bridge collapse", "power outage", "water scarcity", "flood damage", "drought"]
+    },
+    "health": {
+        "keywords": [
+            "hospital", "vaccine", "epidemic", "disease outbreak",
+            "dengue", "malaria", "tuberculosis", "health ministry",
+            "AIIMS", "medical college", "health crisis", "mortality"
+        ],
+        "min_hits": 2,
+        "strong_keywords": ["epidemic", "disease outbreak", "dengue", "malaria", "tuberculosis", "health crisis"]
+    },
+    "education": {
+        "keywords": [
+            "NEET", "JEE", "UGC", "paper leak", "dropout rate",
+            "school closure", "education policy", "teacher vacancy",
+            "student protest", "examination", "curriculum change"
+        ],
+        "min_hits": 2,
+        "strong_keywords": ["NEET", "JEE", "paper leak", "dropout rate", "teacher vacancy", "student protest"]
+    },
+    "farmer_agriculture": {
+        "keywords": [
+            "farmer", "kisan", "MSP", "farm law", "agricultural distress",
+            "crop failure", "irrigation", "fertilizer shortage",
+            "farmer suicide", "rural distress", "agri reform"
+        ],
+        "min_hits": 2,
+        "strong_keywords": ["MSP", "farmer suicide", "farm law", "agricultural distress", "crop failure"]
+    },
+    "protest_opposition": {
+        "keywords": [
+            "protest", "demonstration", "bandh", "lathi charge", "teargas",
+            "arrested activists", "crackdown", "civil disobedience",
+            "hunger strike", "sit-in", "agitation"
+        ],
+        "min_hits": 2,
+        "strong_keywords": ["lathi charge", "teargas", "crackdown", "hunger strike", "arrested activists"]
+    }
 }
 
 # ==============================================================================
@@ -167,6 +213,10 @@ def rule_based_classify(title, content):
     parties_found = []
     for party in PARTIES:
         if re.search(r'\b' + re.escape(party) + r'\b', full_text, re.IGNORECASE):
+            # Congress disambiguation — skip if US Congress context
+            if party in ['Congress', 'INC']:
+                if re.search(r'us congress|american congress|congressional|u\.s\. congress', text_lower):
+                    continue
             if party not in parties_found:
                 parties_found.append(party)
 
@@ -180,11 +230,17 @@ def rule_based_classify(title, content):
     # State detection — only match full state names to avoid false positives like "UP"
     states_found = []
     for state in STATES:
-        # Skip short ambiguous names for regex — require full word boundary match
         if len(state) <= 3:
-            # Strict: must be surrounded by spaces or punctuation, not part of a word
+            # Short names like "UP", "Goa" need strict context
+            # Must appear as standalone word AND article should be India-related
             if re.search(r'(?<!\w)' + re.escape(state) + r'(?!\w)', full_text):
-                if state not in states_found:
+                # Extra check: article must mention India or another Indian state/city
+                india_context = any([
+                    'india' in text_lower,
+                    'indian' in text_lower,
+                    any(city.lower() in text_lower for city in CITIES[:10])
+                ])
+                if india_context and state not in states_found:
                     states_found.append(state)
         else:
             if re.search(r'\b' + re.escape(state) + r'\b', full_text, re.IGNORECASE):
@@ -198,14 +254,26 @@ def rule_based_classify(title, content):
             if city not in cities_found:
                 cities_found.append(city)
 
-    # Topic tag detection
+    # Topic tag detection — stricter than before
+    # A topic is only tagged if:
+    # 1. A strong keyword is found (always qualifies alone), OR
+    # 2. Multiple regular keywords are found (min_hits threshold)
     topics_found = []
-    for topic, keywords in TOPIC_KEYWORDS.items():
-        for kw in keywords:
-            if kw.lower() in text_lower:
-                if topic not in topics_found:
-                    topics_found.append(topic)
-                break
+    for topic, config in TOPIC_KEYWORDS.items():
+        keywords = config["keywords"]
+        min_hits = config["min_hits"]
+        strong_keywords = config.get("strong_keywords", [])
+
+        # Check for strong keyword match first — immediate tag
+        strong_match = any(kw.lower() in text_lower for kw in strong_keywords)
+        if strong_match:
+            topics_found.append(topic)
+            continue
+
+        # Otherwise count regular keyword hits
+        hits = sum(1 for kw in keywords if kw.lower() in text_lower)
+        if hits >= min_hits:
+            topics_found.append(topic)
 
     return {
         "party_mentioned": parties_found,
@@ -227,7 +295,7 @@ VALID_CATEGORIES = [
 VALID_SENTIMENTS = ["negative", "positive", "neutral"]
 
 def ai_classify(llm, title, rephrased_article):
-    """Uses Gemma to classify category, sentiment, and sentiment target."""
+    """Uses Gemma to classify category, sentiment, sentiment target, and topic tags."""
 
     prompt = f"""<start_of_turn>user
 You are a news classifier. Analyze the news article below and return ONLY a valid JSON object with these exact fields:
@@ -235,6 +303,7 @@ You are a news classifier. Analyze the news article below and return ONLY a vali
 1. "category": one of — politics, crime, economy, international, regional, health, education, environment, sports, other
 2. "sentiment": one of — negative, positive, neutral (toward the main subject/government)
 3. "sentiment_target": the main subject of the article (e.g. "BJP", "Narendra Modi", "Indian Government", "Police")
+4. "topic_tags": a list of 0-3 tags from ONLY these options — rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition. Only include a tag if the article is PRIMARILY about that topic.
 
 Return ONLY the JSON. No explanation. No extra text.
 
@@ -247,7 +316,7 @@ Article: {rephrased_article}
     try:
         response = llm(
             prompt,
-            max_tokens=120,
+            max_tokens=150,
             temperature=0.1,
             top_p=0.9,
             stop=["<end_of_turn>", "<start_of_turn>"],
@@ -268,10 +337,19 @@ Article: {rephrased_article}
 
         sentiment_target = str(parsed.get('sentiment_target', '')).strip()
 
+        # Validate Gemma topic tags — only keep known valid ones
+        valid_topics = set(TOPIC_KEYWORDS.keys())
+        gemma_topics = parsed.get('topic_tags', [])
+        if isinstance(gemma_topics, list):
+            gemma_topics = [t for t in gemma_topics if t in valid_topics]
+        else:
+            gemma_topics = []
+
         return {
             "category": category,
             "sentiment": sentiment,
-            "sentiment_target": sentiment_target
+            "sentiment_target": sentiment_target,
+            "gemma_topic_tags": gemma_topics
         }
 
     except (json.JSONDecodeError, KeyError, Exception) as e:
@@ -279,12 +357,186 @@ Article: {rephrased_article}
         return {
             "category": "other",
             "sentiment": "neutral",
-            "sentiment_target": ""
+            "sentiment_target": "",
+            "gemma_topic_tags": []
         }
 
 # ==============================================================================
-# --- GOOGLE SHEETS SETUP ---
+# --- CIVIC FLAG SYSTEM ---
+# Identifies articles that deserve immediate public attention.
+# Two-pass: rule-based scoring + Gemma validation for high scorers.
 # ==============================================================================
+
+# Rule definitions for civic flagging
+CIVIC_FLAG_RULES = [
+    {
+        "id": "power_crime",
+        "category": "power_abuse",
+        "description": "Elected official or party linked to serious crime",
+        "score": 9,
+        "requires_all": [
+            lambda tags, text: bool(tags.get('party_mentioned') or tags.get('ministers_mentioned')),
+            lambda tags, text: any(t in tags.get('topic_tags', []) for t in ['rape_sexual_crime', 'corruption_scam', 'crime_violence'])
+        ]
+    },
+    {
+        "id": "rape_by_official",
+        "category": "power_abuse",
+        "description": "Sexual crime involving politically connected person",
+        "score": 10,
+        "requires_all": [
+            lambda tags, text: 'rape_sexual_crime' in tags.get('topic_tags', []),
+            lambda tags, text: any(kw in text for kw in ['mla', 'mp ', 'minister', 'councillor', 'party worker', 'bjp', 'congress', 'aap', 'tmc'])
+        ]
+    },
+    {
+        "id": "custodial_death",
+        "category": "institutional_failure",
+        "description": "Death in police or government custody",
+        "score": 9,
+        "requires_all": [
+            lambda tags, text: any(kw in text for kw in ['custodial death', 'died in custody', 'death in custody', 'police custody death', 'jail death', 'died in jail'])
+        ]
+    },
+    {
+        "id": "mass_harm",
+        "category": "scale_of_harm",
+        "description": "Large scale harm to citizens — deaths, displacement, unemployment",
+        "score": 8,
+        "requires_all": [
+            lambda tags, text: any(kw in text for kw in ['lakh people', 'crore people', 'thousand dead', 'hundred killed', 'mass displacement', 'mass layoff', 'widespread unemployment']),
+            lambda tags, text: tags.get('sentiment') == 'negative'
+        ]
+    },
+    {
+        "id": "case_suppressed",
+        "category": "suppression",
+        "description": "Criminal case dropped, quashed or suppressed for politically connected accused",
+        "score": 9,
+        "requires_all": [
+            lambda tags, text: any(kw in text for kw in ['fir quashed', 'case dropped', 'charges dropped', 'bail granted', 'case closed', 'acquitted']),
+            lambda tags, text: bool(tags.get('party_mentioned') or tags.get('ministers_mentioned'))
+        ]
+    },
+    {
+        "id": "farmer_suicide",
+        "category": "scale_of_harm",
+        "description": "Farmer suicide — institutional failure of agricultural policy",
+        "score": 9,
+        "requires_all": [
+            lambda tags, text: any(kw in text for kw in ['farmer suicide', 'kisan suicide', 'agricultural suicide', 'farmers killed themselves'])
+        ]
+    },
+    {
+        "id": "child_abuse",
+        "category": "power_abuse",
+        "description": "Child abuse, exploitation or trafficking",
+        "score": 10,
+        "requires_all": [
+            lambda tags, text: any(kw in text for kw in ['child abuse', 'minor raped', 'child trafficking', 'child labour', 'pocso', 'minor victim', 'child sexual'])
+        ]
+    },
+    {
+        "id": "institutional_scam",
+        "category": "institutional_failure",
+        "description": "Large scale scam involving public money or institutions",
+        "score": 8,
+        "requires_all": [
+            lambda tags, text: 'corruption_scam' in tags.get('topic_tags', []),
+            lambda tags, text: any(kw in text for kw in ['crore', 'lakh crore', 'public money', 'taxpayer', 'government funds', 'scheme funds'])
+        ]
+    },
+    {
+        "id": "media_suppression",
+        "category": "suppression",
+        "description": "Journalist arrested, press freedom suppression",
+        "score": 8,
+        "requires_all": [
+            lambda tags, text: any(kw in text for kw in ['journalist arrested', 'reporter detained', 'press freedom', 'media crackdown', 'editor arrested', 'newspaper banned', 'channel banned'])
+        ]
+    },
+    {
+        "id": "lynching",
+        "category": "scale_of_harm",
+        "description": "Mob lynching or communal violence",
+        "score": 9,
+        "requires_all": [
+            lambda tags, text: any(kw in text for kw in ['lynching', 'mob lynched', 'lynched', 'mob killed', 'communal violence', 'communal riot'])
+        ]
+    }
+]
+
+def rule_based_civic_flag(title, content, rule_tags, ai_tags):
+    """
+    Checks article against civic flag rules.
+    Returns (flag_score, flag_category, flag_reason) or (0, None, None)
+    """
+    text = f"{title} {content}".lower()
+
+    best_score = 0
+    best_category = None
+    best_reason = None
+
+    # Combined tags for rule checking
+    combined_tags = {
+        **rule_tags,
+        **ai_tags
+    }
+
+    for rule in CIVIC_FLAG_RULES:
+        try:
+            # All conditions must pass
+            all_pass = all(cond(combined_tags, text) for cond in rule['requires_all'])
+            if all_pass and rule['score'] > best_score:
+                best_score = rule['score']
+                best_category = rule['category']
+                best_reason = rule['description']
+        except Exception:
+            continue
+
+    return best_score, best_category, best_reason
+
+def gemma_validate_civic_flag(llm, title, rephrased, flag_reason):
+    """
+    For articles that scored >= 7 in rule-based flagging,
+    ask Gemma to confirm if this genuinely needs public attention.
+    Returns (confirmed: bool, gemma_reason: str)
+    """
+    if llm is None:
+        return True, flag_reason
+
+    prompt = f"""<start_of_turn>user
+You are a civic awareness system. Read the news article below and answer:
+
+Is this article reporting something that an aware Indian citizen should be URGENTLY concerned about?
+Specifically: is it about abuse of power, institutional failure, suppression of justice, or large-scale harm to citizens — being reported as if it is routine or normal?
+
+Article Title: {title}
+Article: {rephrased[:400]}
+
+Return ONLY a JSON: {{"urgent": "yes" or "no", "reason": "one sentence max 20 words explaining why"}}
+No extra text.
+<end_of_turn>
+<start_of_turn>model
+"""
+    try:
+        response = llm(
+            prompt,
+            max_tokens=80,
+            temperature=0.1,
+            stop=["<end_of_turn>", "<start_of_turn>"],
+            echo=False
+        )
+        raw = response['choices'][0].get('text', '').strip()
+        raw = re.sub(r'```json|```', '', raw).strip()
+        parsed = json.loads(raw)
+        confirmed = parsed.get('urgent', 'no').lower() == 'yes'
+        reason = str(parsed.get('reason', flag_reason)).strip()
+        return confirmed, reason
+    except Exception:
+        return True, flag_reason  # Default: keep the flag if Gemma fails
+
+
 
 def connect_to_sheets():
     logging.info("Connecting to Google Sheets...")
@@ -410,11 +662,50 @@ def main():
 
             ai_tags = ai_classify(llm, title, rephrased)
 
+            # Merge topic tags: union of rule-based + Gemma
+            combined_topic_tags = list(set(
+                rule_tags.get('topic_tags', []) +
+                ai_tags.pop('gemma_topic_tags', [])
+            ))
+
+            # --- PASS 3: Civic Flag ---
+            flag_score, flag_category, flag_reason = rule_based_civic_flag(
+                title, content, rule_tags, ai_tags
+            )
+
+            civic_flag = False
+            civic_flag_reason = None
+            civic_flag_category = None
+
+            if flag_score >= 7:
+                # High score — send to Gemma for confirmation
+                confirmed, gemma_reason = gemma_validate_civic_flag(
+                    llm, title, rephrased, flag_reason
+                )
+                if confirmed:
+                    civic_flag = True
+                    civic_flag_reason = gemma_reason
+                    civic_flag_category = flag_category
+                    logging.info(f"  ⚑ CIVIC FLAG [{flag_score}/10]: {gemma_reason}")
+                else:
+                    logging.info(f"  ⚑ Flag rejected by Gemma (score was {flag_score})")
+            elif flag_score >= 5:
+                # Medium score — flag without Gemma validation
+                civic_flag = True
+                civic_flag_reason = flag_reason
+                civic_flag_category = flag_category
+                logging.info(f"  ⚑ CIVIC FLAG [{flag_score}/10]: {flag_reason}")
+
             # --- MERGE ---
             enriched_article = {
                 **article,
                 **rule_tags,
                 **ai_tags,
+                "topic_tags": combined_topic_tags,
+                "civic_flag": civic_flag,
+                "civic_flag_score": flag_score if civic_flag else 0,
+                "civic_flag_category": civic_flag_category,
+                "civic_flag_reason": civic_flag_reason,
                 "classified_at": str(datetime.now())
             }
 
@@ -428,7 +719,9 @@ def main():
             logging.info(f"Saved [{processed_count}]: {title}")
             logging.info(f"  Category: {ai_tags['category']} | Sentiment: {ai_tags['sentiment']} | Target: {ai_tags['sentiment_target']}")
             logging.info(f"  Parties: {rule_tags['party_mentioned']} | Ministers: {rule_tags['ministers_mentioned']}")
-            logging.info(f"  States: {rule_tags['states_mentioned']} | Topics: {rule_tags['topic_tags']}")
+            logging.info(f"  States: {rule_tags['states_mentioned']} | Topics: {combined_topic_tags}")
+            if civic_flag:
+                logging.info(f"  ⚑ FLAGGED [{civic_flag_category}]: {civic_flag_reason}")
 
             time.sleep(2.0)
 
