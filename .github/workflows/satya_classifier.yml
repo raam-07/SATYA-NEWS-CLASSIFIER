@@ -1,10 +1,9 @@
 name: Satya Classifier Pipeline
 
 on:
-  schedule:
-    # Runs every 5 minutes
-    - cron: '*/5 * * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+  repository_dispatch:
+    types: [trigger-classifier] # <--- LISTEN FOR THIS TRIGGER EVENT
+  workflow_dispatch:            # Allows you to still run it manually
 
 concurrency:
   group: satya-classifier
