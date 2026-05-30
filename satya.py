@@ -673,7 +673,7 @@ def main():
                     model_path=MODEL_PATH,
                     n_ctx=4096,
                     n_batch=512,
-                    n_threads=4,
+                    n_threads=2,
                     verbose=False
                 )
                 logging.info("Gemma model loaded.")
