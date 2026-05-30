@@ -295,7 +295,7 @@ VALID_CATEGORIES = [
 VALID_SENTIMENTS = ["negative", "positive", "neutral"]
 
 def ai_classify(llm, title, rephrased_article):
-    """Uses Gemma to classify category, sentiment, sentiment target, and topic tags."""
+    """Uses Gemma to classify category, sentiment, sentiment target, topic tags, beneficiary group, and geo focus."""
 
     prompt = f"""<start_of_turn>user
 You are a news classifier. Analyze the news article below and return ONLY a valid JSON object with these exact fields:
@@ -304,6 +304,8 @@ You are a news classifier. Analyze the news article below and return ONLY a vali
 2. "sentiment": one of — negative, positive, neutral (toward the main subject/government)
 3. "sentiment_target": the main subject of the article (e.g. "BJP", "Narendra Modi", "Indian Government", "Police")
 4. "topic_tags": a list of 0-3 tags from ONLY these options — rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition. Only include a tag if the article is PRIMARILY about that topic.
+5. "beneficiary_group": one of — farmers, students, women, youth_unemployed, business_owners, taxpayers, low_income_households, general_public, none
+6. "geo_focus": the specific district, constituency, or micro-location mentioned in the article, or "" if none (e.g., "Kaleshwaram", "Kodagu", "Tirthahalli")
 
 Return ONLY the JSON. No explanation. No extra text.
 
@@ -316,7 +318,7 @@ Article: {rephrased_article}
     try:
         response = llm(
             prompt,
-            max_tokens=150,
+            max_tokens=200,
             temperature=0.1,
             top_p=0.9,
             stop=["<end_of_turn>", "<start_of_turn>"],
@@ -345,11 +347,25 @@ Article: {rephrased_article}
         else:
             gemma_topics = []
 
+        # Validate beneficiary group
+        beneficiary_group = parsed.get('beneficiary_group', 'none').lower()
+        VALID_BENEFICIARIES = [
+            'farmers', 'students', 'women', 'youth_unemployed', 
+            'business_owners', 'taxpayers', 'low_income_households', 
+            'general_public', 'none'
+        ]
+        if beneficiary_group not in VALID_BENEFICIARIES:
+            beneficiary_group = 'none'
+
+        geo_focus = str(parsed.get('geo_focus', '')).strip()
+
         return {
             "category": category,
             "sentiment": sentiment,
             "sentiment_target": sentiment_target,
-            "gemma_topic_tags": gemma_topics
+            "gemma_topic_tags": gemma_topics,
+            "beneficiary_group": beneficiary_group,
+            "geo_focus": geo_focus
         }
 
     except (json.JSONDecodeError, KeyError, Exception) as e:
@@ -358,7 +374,9 @@ Article: {rephrased_article}
             "category": "other",
             "sentiment": "neutral",
             "sentiment_target": "",
-            "gemma_topic_tags": []
+            "gemma_topic_tags": [],
+            "beneficiary_group": "none",
+            "geo_focus": ""
         }
 
 # ==============================================================================
@@ -720,6 +738,7 @@ def main():
             logging.info(f"  Category: {ai_tags['category']} | Sentiment: {ai_tags['sentiment']} | Target: {ai_tags['sentiment_target']}")
             logging.info(f"  Parties: {rule_tags['party_mentioned']} | Ministers: {rule_tags['ministers_mentioned']}")
             logging.info(f"  States: {rule_tags['states_mentioned']} | Topics: {combined_topic_tags}")
+            logging.info(f"  Beneficiary: {ai_tags['beneficiary_group']} | Geo Focus: {ai_tags['geo_focus']}")
             if civic_flag:
                 logging.info(f"  ⚑ FLAGGED [{civic_flag_category}]: {civic_flag_reason}")
 
