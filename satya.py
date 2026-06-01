@@ -303,7 +303,7 @@ You are a news classifier. Analyze the news article below and return ONLY a vali
 1. "category": one of — politics, crime, economy, international, regional, health, education, environment, sports, other
 2. "sentiment": one of — negative, positive, neutral (toward the main subject/government)
 3. "sentiment_target": the main subject of the article (e.g. "BJP", "Narendra Modi", "Indian Government", "Police")
-4. "topic_tags": a list of 0-3 tags from ONLY these options — rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition. Only include a tag if the article is PRIMARILY about that topic.
+4. "topic_tags": a list of 0-3 tags from ONLY these options — rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition, political_gaffe. Only include a tag if the article is PRIMARILY about that topic.
 5. "beneficiary_group": one of — farmers, students, women, youth_unemployed, business_owners, taxpayers, low_income_households, general_public, none
 6. "geo_focus": the specific district, constituency, or micro-location mentioned in the article, or "" if none (e.g., "Kaleshwaram", "Kodagu", "Tirthahalli")
 
@@ -340,7 +340,7 @@ Article: {rephrased_article}
         sentiment_target = str(parsed.get('sentiment_target', '')).strip()
 
         # Validate Gemma topic tags — only keep known valid ones
-        valid_topics = set(TOPIC_KEYWORDS.keys())
+        valid_topics = set(list(TOPIC_KEYWORDS.keys()) + ["political_gaffe"])
         gemma_topics = parsed.get('topic_tags', [])
         if isinstance(gemma_topics, list):
             gemma_topics = [t for t in gemma_topics if t in valid_topics]
