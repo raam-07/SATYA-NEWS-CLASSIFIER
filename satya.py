@@ -204,6 +204,34 @@ TOPIC_KEYWORDS = {
 # --- RULE-BASED CLASSIFIER ---
 # ==============================================================================
 
+def _single_name_context_ok(name, full_text):
+    """
+    Guard for single-word minister aliases (e.g. "Modi", "Shah", "Stalin").
+    Requires a case-sensitive match whose adjacent capitalized words don't
+    suggest a different person (e.g. "Shah Rukh Khan", "Joseph Stalin").
+    A match passes if at least one occurrence has clean neighbours.
+    """
+    allowed = {w.lower() for mm in MINISTERS for w in mm.replace('.', ' ').split()}
+    # Titles and honorifics that legitimately precede/follow a politician's name
+    allowed |= {
+        'minister', 'chief', 'prime', 'pm', 'cm', 'home', 'union', 'finance',
+        'defence', 'defense', 'external', 'affairs', 'leader', 'president',
+        'mp', 'mla', 'shri', 'smt', 'mr', 'mrs', 'ms', 'dr', 'sir',
+        'former', 'deputy', 'opposition', 'congress', 'bjp', 'didi', 'ji',
+    }
+    for match in re.finditer(r'\b' + re.escape(name) + r'\b', full_text):
+        start, end = match.start(), match.end()
+        prev_words = re.findall(r'\b[\w.]+\b', full_text[max(0, start - 40):start])
+        next_words = re.findall(r'\b[\w.]+\b', full_text[end:end + 40])
+        prev_ok = not (prev_words and prev_words[-1][0].isupper()
+                       and prev_words[-1].lower().rstrip('.') not in allowed)
+        next_ok = not (next_words and next_words[0][0].isupper()
+                       and next_words[0].lower().rstrip('.') not in allowed)
+        if prev_ok and next_ok:
+            return True
+    return False
+
+
 def rule_based_classify(title, content):
     """Scans title + content for known entities. Returns structured tags."""
     full_text = f"{title} {content}"
@@ -223,9 +251,17 @@ def rule_based_classify(title, content):
     # Minister detection
     ministers_found = []
     for minister in MINISTERS:
-        if re.search(r'\b' + re.escape(minister) + r'\b', full_text, re.IGNORECASE):
-            if minister not in ministers_found:
-                ministers_found.append(minister)
+        if ' ' in minister:
+            # Full names are unambiguous — case-insensitive match is fine
+            if re.search(r'\b' + re.escape(minister) + r'\b', full_text, re.IGNORECASE):
+                if minister not in ministers_found:
+                    ministers_found.append(minister)
+        else:
+            # Single-word alias: case-sensitive + neighbouring-word context guard
+            if re.search(r'\b' + re.escape(minister) + r'\b', full_text) \
+                    and _single_name_context_ok(minister, full_text):
+                if minister not in ministers_found:
+                    ministers_found.append(minister)
 
     # State detection — only match full state names to avoid false positives like "UP"
     states_found = []
