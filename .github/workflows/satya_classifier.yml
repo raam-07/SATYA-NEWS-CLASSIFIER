@@ -38,7 +38,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install gspread oauth2client llama-cpp-python huggingface_hub
+          pip install gspread oauth2client llama-cpp-python huggingface_hub libsql
 
       # 5. Cache the Gemma model so it doesn't download every run
       - name: Cache Gemma Model
