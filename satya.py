@@ -620,38 +620,7 @@ No extra text.
         reason = str(parsed.get('reason', flag_reason)).strip()
         return confirmed, reason
     except Exception:
-        return True, flag_reason  # Default: keepdef connect_to_sheets():
-    logging.info("Connecting to Google Sheets...")
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    gcp_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON")
-
-    if not gcp_json:
-        raise ValueError("GCP_SERVICE_ACCOUNT_JSON missing from environment variables!")
-
-    creds_dict = json.loads(gcp_json)
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    client = gspread.authorize(creds)
-
-    source_sheet = client.open(SOURCE_SHEET_NAME).worksheet(SOURCE_WORKSHEET_NAME)
-    return source_sheet
-
-
-def get_existing_urls():
-    logging.info("Fetching existing URLs from SQLite database...")
-    existing_urls = set()
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT url FROM articles WHERE status = 'classified'")
-        for row in cursor.fetchall():
-            if row[0]:
-                existing_urls.add(row[0])
-        conn.close()
-    except Exception as e:
-        logging.error(f"Error fetching classified URLs from database: {e}")
-
-    logging.info(f"Loaded {len(existing_urls)} already classified URLs.")
-    return existing_urls
+        return True, flag_reason  # Default: keep
 
 # ==============================================================================
 # --- MAIN PIPELINE ---
@@ -661,25 +630,66 @@ def main():
     start_time = time.time()
     logging.info("--- Satya Classifier Pipeline Started ---")
 
-    source_sheet = connect_to_sheets()
-    existing_urls = get_existing_urls()
-
-    logging.info("Fetching all records from processed sheet...")
-    raw_source_data = source_sheet.col_values(1)
-
-    # Reverse so we process newest articles first
-    raw_source_data = list(reversed(raw_source_data))
-
+    existing_urls = set()
     parsed_articles = []
-    for cell in raw_source_data:
-        if not cell:
-            continue
-        try:
-            parsed_articles.append(json.loads(cell))
-        except json.JSONDecodeError:
-            continue
 
-    logging.info(f"Total articles in source sheet: {len(parsed_articles)}. Scanning for unclassified ones...")
+    logging.info("Fetching unclassified (rephrased) articles from SQLite database...")
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, title, content, rephrased_article, url, cluster_id, image_url, scraped_at 
+            FROM articles 
+            WHERE status = 'rephrased' 
+            ORDER BY id DESC 
+            LIMIT ?
+        """, (MAX_ARTICLES_TO_PROCESS,))
+        rows = cursor.fetchall()
+        conn.close()
+    except Exception as e:
+        logging.critical(f"Failed to query database: {e}")
+        return
+
+    for r in rows:
+        article_id = r[0]
+        title = r[1]
+        compressed_content = r[2]
+        compressed_rephrased = r[3]
+        url = r[4]
+        cluster_id = r[5]
+        image_url = r[6]
+        scraped_timestamp = r[7]
+
+        try:
+            content = zlib.decompress(compressed_content).decode('utf-8') if compressed_content else ""
+        except Exception:
+            content = ""
+
+        try:
+            rephrased = zlib.decompress(compressed_rephrased).decode('utf-8') if compressed_rephrased else content
+        except Exception:
+            rephrased = content
+
+        # Convert timestamp to standard string format expected by downstream parser
+        scraped_at_str = ""
+        if scraped_timestamp:
+            try:
+                scraped_at_str = datetime.fromtimestamp(scraped_timestamp).strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                pass
+
+        parsed_articles.append({
+            'id': article_id,
+            'title': title,
+            'content': content,
+            'rephrased_article': rephrased if rephrased else content,
+            'url': url,
+            'cluster_id': cluster_id,
+            'image_url': image_url,
+            'scraped_at': scraped_at_str
+        })
+
+    logging.info(f"Loaded {len(parsed_articles)} articles from database for classification.")
 
     llm = None
     processed_count = 0
