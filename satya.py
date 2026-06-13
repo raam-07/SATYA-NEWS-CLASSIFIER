@@ -24,6 +24,18 @@ from llama_cpp import Llama
 SOURCE_SHEET_NAME = 'News Scrapper AI Processed'
 SOURCE_WORKSHEET_NAME = 'Sheet1'
 
+def load_env():
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, val = line.split('=', 1)
+                    os.environ[key.strip()] = val.strip()
+
+load_env()
+
 DB_PATH = os.environ.get('SATYA_DB_PATH', '/Users/mac/Downloads/Code/Satya/satya.db')
 
 MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
