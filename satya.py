@@ -36,7 +36,26 @@ def load_env():
 
 load_env()
 
-DB_PATH = os.environ.get('SATYA_DB_PATH', '/Users/mac/Downloads/Code/Satya/satya.db')
+# Self-healing default local path for environments like GHA
+default_db_path = '/Users/mac/Downloads/Code/Satya/satya.db'
+if not os.path.exists(os.path.dirname(default_db_path)):
+    default_db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'satya.db')
+
+DB_PATH = os.environ.get('SATYA_DB_PATH', default_db_path)
+
+def get_db_connection():
+    db_url = os.environ.get('SATYA_DB_URL')
+    db_token = os.environ.get('SATYA_DB_TOKEN')
+    
+    if db_url and (db_url.startswith('libsql://') or db_url.startswith('https://')):
+        try:
+            import turso
+            return turso.connect(DB_PATH, remote_url=db_url, auth_token=db_token)
+        except ImportError:
+            logging.error("pyturso package not installed. Falling back to local sqlite3.")
+            
+    import sqlite3
+    return sqlite3.connect(DB_PATH)
 
 MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
 
@@ -621,7 +640,7 @@ def get_existing_urls():
     logging.info("Fetching existing URLs from SQLite database...")
     existing_urls = set()
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT url FROM articles WHERE status = 'classified'")
         for row in cursor.fetchall():
@@ -763,7 +782,7 @@ def main():
             }
 
             # --- SAVE ---
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_db_connection()
             cursor = conn.cursor()
             
             # Resolve source_id
