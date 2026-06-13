@@ -11,6 +11,8 @@ import json
 import time
 import logging
 import re
+import sqlite3
+import zlib
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -22,8 +24,7 @@ from llama_cpp import Llama
 SOURCE_SHEET_NAME = 'News Scrapper AI Processed'
 SOURCE_WORKSHEET_NAME = 'Sheet1'
 
-DEST_SHEET_NAME = 'Satya Classified'
-DEST_WORKSHEET_NAME = 'Sheet1'
+DB_PATH = os.environ.get('SATYA_DB_PATH', '/Users/mac/Downloads/Code/Satya/satya.db')
 
 MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
 
@@ -588,11 +589,7 @@ No extra text.
         reason = str(parsed.get('reason', flag_reason)).strip()
         return confirmed, reason
     except Exception:
-        return True, flag_reason  # Default: keep the flag if Gemma fails
-
-
-
-def connect_to_sheets():
+        return True, flag_reason  # Default: keepdef connect_to_sheets():
     logging.info("Connecting to Google Sheets...")
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     gcp_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON")
@@ -605,32 +602,22 @@ def connect_to_sheets():
     client = gspread.authorize(creds)
 
     source_sheet = client.open(SOURCE_SHEET_NAME).worksheet(SOURCE_WORKSHEET_NAME)
-
-    try:
-        dest_sheet = client.open(DEST_SHEET_NAME).worksheet(DEST_WORKSHEET_NAME)
-    except gspread.exceptions.SpreadsheetNotFound:
-        logging.critical(f"Destination sheet '{DEST_SHEET_NAME}' not found. Please create it manually.")
-        raise
-
-    return source_sheet, dest_sheet
+    return source_sheet
 
 
-def get_existing_urls(dest_sheet):
-    logging.info("Fetching existing URLs from classified sheet...")
+def get_existing_urls():
+    logging.info("Fetching existing URLs from SQLite database...")
     existing_urls = set()
     try:
-        raw_data = dest_sheet.col_values(1)
-        for cell in raw_data:
-            if not cell:
-                continue
-            try:
-                data = json.loads(cell)
-                if 'url' in data:
-                    existing_urls.add(data['url'])
-            except json.JSONDecodeError:
-                continue
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT url FROM articles WHERE status = 'classified'")
+        for row in cursor.fetchall():
+            if row[0]:
+                existing_urls.add(row[0])
+        conn.close()
     except Exception as e:
-        logging.error(f"Error fetching classified sheet: {e}")
+        logging.error(f"Error fetching classified URLs from database: {e}")
 
     logging.info(f"Loaded {len(existing_urls)} already classified URLs.")
     return existing_urls
@@ -643,8 +630,8 @@ def main():
     start_time = time.time()
     logging.info("--- Satya Classifier Pipeline Started ---")
 
-    source_sheet, dest_sheet = connect_to_sheets()
-    existing_urls = get_existing_urls(dest_sheet)
+    source_sheet = connect_to_sheets()
+    existing_urls = get_existing_urls()
 
     logging.info("Fetching all records from processed sheet...")
     raw_source_data = source_sheet.col_values(1)
@@ -763,10 +750,108 @@ def main():
                 "classified_at": str(datetime.now())
             }
 
-            safe_json = json.dumps(enriched_article, ensure_ascii=False)
-
             # --- SAVE ---
-            dest_sheet.append_row([safe_json])
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            
+            # Resolve source_id
+            source_name = enriched_article.get('source', 'Unknown')
+            cursor.execute("INSERT OR IGNORE INTO sources (name) VALUES (?)", (source_name,))
+            cursor.execute("SELECT id FROM sources WHERE name = ?", (source_name,))
+            source_id = cursor.fetchone()[0]
+            
+            # Compress rephrased summary and full content
+            compressed_rephrased = zlib.compress(enriched_article.get('rephrased_article', '').encode('utf-8'))
+            compressed_content = zlib.compress(enriched_article.get('content', '').encode('utf-8'))
+            
+            # Parse dates to timestamps
+            def parse_date_to_timestamp(date_str):
+                if not date_str:
+                    return int(time.time())
+                try:
+                    clean_date = date_str.split('.')[0]
+                    dt = time.strptime(clean_date, "%Y-%m-%d %H:%M:%S")
+                    return int(time.mktime(dt))
+                except Exception:
+                    try:
+                        clean_date = date_str.split(' ')[0]
+                        dt = time.strptime(clean_date, "%Y-%m-%d")
+                        return int(time.mktime(dt))
+                    except Exception:
+                        return int(time.time())
+
+            scraped_timestamp = parse_date_to_timestamp(enriched_article.get('scraped_at'))
+            classified_timestamp = int(time.time())
+            
+            # Update row in database matching scraper ID
+            article_id = enriched_article.get('id')
+            cursor.execute("SELECT id FROM articles WHERE id = ?", (article_id,))
+            exists = cursor.fetchone()
+            
+            db_civic_flag = 1 if civic_flag else 0
+            
+            if exists:
+                cursor.execute("""
+                    UPDATE articles 
+                    SET category = ?, sentiment = ?, sentiment_target = ?, rephrased_article = ?,
+                        party_mentioned = ?, ministers_mentioned = ?, states_mentioned = ?, 
+                        cities_mentioned = ?, topic_tags = ?, civic_flag = ?, civic_flag_score = ?,
+                        civic_flag_category = ?, civic_flag_reason = ?, classified_at = ?, status = 'classified'
+                    WHERE id = ?
+                """, (
+                    enriched_article.get('category', 'other'),
+                    enriched_article.get('sentiment', 'neutral'),
+                    enriched_article.get('sentiment_target', ''),
+                    compressed_rephrased,
+                    json.dumps(enriched_article.get('party_mentioned', [])),
+                    json.dumps(enriched_article.get('ministers_mentioned', [])),
+                    json.dumps(enriched_article.get('states_mentioned', [])),
+                    json.dumps(enriched_article.get('cities_mentioned', [])),
+                    json.dumps(enriched_article.get('topic_tags', [])),
+                    db_civic_flag,
+                    enriched_article.get('civic_flag_score', 0),
+                    enriched_article.get('civic_flag_category'),
+                    enriched_article.get('civic_flag_reason'),
+                    classified_timestamp,
+                    article_id
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO articles (
+                        id, cluster_id, source_id, title, url, content, image_url, scraped_at,
+                        category, sentiment, sentiment_target, rephrased_article,
+                        party_mentioned, ministers_mentioned, states_mentioned, cities_mentioned, topic_tags,
+                        civic_flag, civic_flag_score, civic_flag_category, civic_flag_reason,
+                        classified_at, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'classified')
+                """, (
+                    article_id,
+                    enriched_article.get('cluster_id', ''),
+                    source_id,
+                    enriched_article.get('title', ''),
+                    enriched_article.get('url', ''),
+                    compressed_content,
+                    enriched_article.get('image_url', ''),
+                    scraped_timestamp,
+                    enriched_article.get('category', 'other'),
+                    enriched_article.get('sentiment', 'neutral'),
+                    enriched_article.get('sentiment_target', ''),
+                    compressed_rephrased,
+                    json.dumps(enriched_article.get('party_mentioned', [])),
+                    json.dumps(enriched_article.get('ministers_mentioned', [])),
+                    json.dumps(enriched_article.get('states_mentioned', [])),
+                    json.dumps(enriched_article.get('cities_mentioned', [])),
+                    json.dumps(enriched_article.get('topic_tags', [])),
+                    db_civic_flag,
+                    enriched_article.get('civic_flag_score', 0),
+                    enriched_article.get('civic_flag_category'),
+                    enriched_article.get('civic_flag_reason'),
+                    classified_timestamp
+                ))
+            
+            conn.commit()
+            conn.close()
+
             existing_urls.add(url)
             processed_count += 1
 
