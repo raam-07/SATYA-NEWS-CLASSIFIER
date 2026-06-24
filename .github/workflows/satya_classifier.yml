@@ -86,3 +86,12 @@ jobs:
           name: satya-classifier-log-${{ github.run_number }}
           path: "*.log"
           retention-days: 7
+
+      # 10. Trigger Entity Updater Instantly
+      - name: Trigger Entity Updater Instantly
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.ENTITY_UPDATER_PAT }}
+          repository: raam-07/satya-entity-library
+          event-type: trigger-entity-updater
+
