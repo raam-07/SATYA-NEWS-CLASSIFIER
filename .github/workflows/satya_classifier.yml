@@ -89,6 +89,17 @@ jobs:
           path: "*.log"
           retention-days: 7
 
+      # 9.5. Revalidate and Pre-warm Cache
+      - name: Revalidate and Pre-warm Cache
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          echo "Revalidating all content caches..."
+          curl -s -X POST "https://satyadheesh.in/api/revalidate?secret=${REVALIDATE_SECRET}"
+          echo "Pre-warming cache..."
+          curl -s "https://satyadheesh.in/" > /dev/null
+          curl -s "https://satyadheesh.in/api/data?type=indiaOverview" > /dev/null
+
       # 10. Trigger Entity Updater Instantly
       - name: Trigger Entity Updater Instantly
         uses: peter-evans/repository-dispatch@v3
@@ -96,6 +107,7 @@ jobs:
           token: ${{ secrets.ENTITY_UPDATER_PAT }}
           repository: raam-07/satya-entity-library
           event-type: trigger-entity-updater
+
 
       - name: Trigger next Classifier run if remaining
         env:
