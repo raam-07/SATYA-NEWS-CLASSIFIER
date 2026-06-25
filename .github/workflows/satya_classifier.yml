@@ -13,6 +13,8 @@ jobs:
   classify:
     runs-on: ubuntu-latest
     timeout-minutes: 350 # Just under GitHub's 6hr limit
+    permissions:
+      actions: write
 
     steps:
       # 1. Checkout the repo
@@ -94,4 +96,37 @@ jobs:
           token: ${{ secrets.ENTITY_UPDATER_PAT }}
           repository: raam-07/satya-entity-library
           event-type: trigger-entity-updater
+
+      - name: Trigger next Classifier run if remaining
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
+          SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
+        run: |
+          REMAINING=$(python -c "
+          import os, urllib.request, json
+          URL = os.environ['SATYA_DB_URL']
+          TOK = os.environ['SATYA_DB_TOKEN']
+          host = URL.replace('libsql://', 'https://').rstrip('/')
+          stmt = {'sql': \"SELECT COUNT(*) FROM articles WHERE status = 'rephrased'\"}
+          body = {'requests':[{'type':'execute','stmt':stmt},{'type':'close'}]}
+          req = urllib.request.Request(host+'/v2/pipeline', data=json.dumps(body).encode(),
+                  headers={'Authorization':f'Bearer {TOK}','Content-Type':'application/json'})
+          with urllib.request.urlopen(req, timeout=30) as r:
+              res = json.load(r)
+          count = int(res['results'][0]['response']['result']['rows'][0][0]['value'])
+          print(count)
+          ")
+          echo "Remaining rephrased articles: $REMAINING"
+          if [ "$REMAINING" -gt 0 ]; then
+            echo "More rephrased articles remain. Triggering next Classifier run..."
+            curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/actions/workflows/satya_classifier.yml/dispatches \
+              -d '{"ref":"${{ github.ref_name }}"}'
+          else
+            echo "All rephrased articles classified."
+          fi
+
 

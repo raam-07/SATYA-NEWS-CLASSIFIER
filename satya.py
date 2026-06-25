@@ -59,7 +59,7 @@ def get_db_connection():
 
 MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
 
-MAX_ARTICLES_TO_PROCESS = 300
+MAX_ARTICLES_TO_PROCESS = 25
 MAX_RUNTIME_SECONDS = 5 * 3600
 
 logging.basicConfig(
