@@ -138,7 +138,12 @@ jobs:
               https://api.github.com/repos/${{ github.repository }}/actions/workflows/satya_classifier.yml/dispatches \
               -d '{"ref":"${{ github.ref_name }}"}'
           else
-            echo "All rephrased articles classified."
+            echo "All rephrased articles classified. Triggering Timeline Service..."
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.TIMELINE_UPDATER_PAT }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/raam-07/satya-timeline-service/actions/workflows/timeline_service.yml/dispatches \
+              -d '{"ref":"main"}'
           fi
 
 
