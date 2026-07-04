@@ -135,10 +135,10 @@ def insert_article_entities(cursor, article_id, enriched_article):
                     continue
                 slug = party_slugify(item) if kind == 'party' else slugify(item)
                 if slug:
-                    cursor.execute(\"\"\"
+                    cursor.execute("""
                         INSERT OR IGNORE INTO article_entities (article_id, kind, slug)
                         VALUES (?, ?, ?)
-                    \"\"\", (article_id, kind, slug))
+                    """, (article_id, kind, slug))
 
 MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
 
