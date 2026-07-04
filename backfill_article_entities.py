@@ -87,6 +87,19 @@ def get_db_connection():
     db_path = os.environ.get('SATYA_DB_PATH', default_db_path)
     return sqlite3.connect(db_path)
 
+def bulk_insert_entities(cursor, insert_data):
+    if not insert_data:
+        return
+    chunk_size = 200
+    for i in range(0, len(insert_data), chunk_size):
+        chunk = insert_data[i:i+chunk_size]
+        placeholders = ", ".join(["(?, ?, ?)" for _ in range(len(chunk))])
+        sql = f"INSERT OR IGNORE INTO article_entities (article_id, kind, slug) VALUES {placeholders}"
+        params = []
+        for r in chunk:
+            params.extend(r)
+        cursor.execute(sql, params)
+
 def main():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -105,7 +118,7 @@ def main():
     """)
     conn.commit()
 
-    # 2. Get start_id from CLI or query MAX(article_id) from article_entities
+    # 2. Get start_id
     start_id = 0
     cursor.execute("SELECT IFNULL(MAX(article_id), 0) FROM article_entities")
     start_id = cursor.fetchone()[0]
@@ -129,6 +142,9 @@ def main():
             logging.info("No more articles to process.")
             break
             
+        article_ids = [r[0] for r in rows]
+        insert_data = []
+        
         for r in rows:
             article_id = r[0]
             party_json = r[1]
@@ -137,14 +153,12 @@ def main():
             cities_json = r[4]
             topics_json = r[5]
             
-            # Helper to safely parse JSON list
             def parse_list(j):
                 if not j:
                     return []
                 try:
                     return json.loads(j)
                 except Exception:
-                    # if it's already a list (some driver configurations)
                     if isinstance(j, list):
                         return j
                     return []
@@ -163,9 +177,6 @@ def main():
                 ('topic', topics)
             ]
             
-            # Clear existing just in case
-            cursor.execute("DELETE FROM article_entities WHERE article_id = ?", (article_id,))
-            
             for kind, items in kinds:
                 if isinstance(items, list):
                     for item in set(items):
@@ -173,13 +184,21 @@ def main():
                             continue
                         slug = party_slugify(item) if kind == 'party' else slugify(item)
                         if slug:
-                            cursor.execute("""
-                                INSERT OR IGNORE INTO article_entities (article_id, kind, slug)
-                                VALUES (?, ?, ?)
-                            """, (article_id, kind, slug))
+                            insert_data.append((article_id, kind, slug))
             
             start_id = article_id
             total_processed += 1
+            
+        # Bulk delete in one single query
+        if article_ids:
+            chunk_size = 200
+            for i in range(0, len(article_ids), chunk_size):
+                chunk = article_ids[i:i+chunk_size]
+                placeholders = ", ".join(["?" for _ in range(len(chunk))])
+                cursor.execute(f"DELETE FROM article_entities WHERE article_id IN ({placeholders})", chunk)
+                
+        # Bulk insert
+        bulk_insert_entities(cursor, insert_data)
             
         conn.commit()
         logging.info(f"Committed batch of {len(rows)} articles. Total processed this run: {total_processed}")
