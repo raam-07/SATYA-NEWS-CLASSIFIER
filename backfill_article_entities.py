@@ -125,7 +125,7 @@ def main():
     logging.info(f"Resuming backfill from article ID > {start_id}")
     
     total_processed = 0
-    batch_size = 1000
+    batch_size = 10000
     
     while True:
         logging.info(f"Fetching batch of {batch_size} articles starting after ID {start_id}...")
