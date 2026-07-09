@@ -17,6 +17,13 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from llama_cpp import Llama
+import argparse
+
+# Setup argument parser for parallel sharding
+parser = argparse.ArgumentParser()
+parser.add_argument('--shard', type=int, default=None, help='Shard ID to process (0 to num-shards - 1)')
+parser.add_argument('--num-shards', type=int, default=1, help='Total number of shards')
+args, unknown = parser.parse_known_args()
 
 # ==============================================================================
 # --- CONFIGURATION ---
@@ -716,17 +723,30 @@ def main():
     existing_urls = set()
     parsed_articles = []
 
+    shard = args.shard if args.shard is not None else (int(os.environ.get('SHARD_ID')) if os.environ.get('SHARD_ID') is not None else None)
+    num_shards = args.num_shards if args.num_shards != 1 else (int(os.environ.get('NUM_SHARDS')) if os.environ.get('NUM_SHARDS') is not None else 1)
+
     logging.info("Fetching unclassified (rephrased) articles from SQLite database...")
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, title, content, rephrased_article, url, cluster_id, image_url, scraped_at 
-            FROM articles 
-            WHERE status = 'rephrased' 
-            ORDER BY id DESC 
-            LIMIT ?
-        """, (MAX_ARTICLES_TO_PROCESS,))
+        if shard is not None and num_shards > 1:
+            logging.info(f"Running in shard mode: shard {shard} of {num_shards}")
+            cursor.execute("""
+                SELECT id, title, content, rephrased_article, url, cluster_id, image_url, scraped_at 
+                FROM articles 
+                WHERE status = 'rephrased' AND (id % ?) = ? 
+                ORDER BY id DESC 
+                LIMIT ?
+            """, (num_shards, shard, MAX_ARTICLES_TO_PROCESS))
+        else:
+            cursor.execute("""
+                SELECT id, title, content, rephrased_article, url, cluster_id, image_url, scraped_at 
+                FROM articles 
+                WHERE status = 'rephrased' 
+                ORDER BY id DESC 
+                LIMIT ?
+            """, (MAX_ARTICLES_TO_PROCESS,))
         rows = cursor.fetchall()
         conn.close()
     except Exception as e:

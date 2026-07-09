@@ -4,15 +4,42 @@ on:
   repository_dispatch:
     types: [trigger-classifier] # <--- LISTEN FOR THIS TRIGGER EVENT
   workflow_dispatch:            # Allows you to still run it manually
+    inputs:
+      shard:
+        description: 'Shard ID to process (all, or 0-19)'
+        required: false
+        default: 'all'
 
 concurrency:
-  group: satya-classifier
+  group: satya-classifier-${{ github.event.inputs.shard || github.event.client_payload.shard || 'all' }}
   cancel-in-progress: false  # Wait for running job to finish, don't cancel it
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.set-shards.outputs.shards }}
+    steps:
+      - id: set-shards
+        run: |
+          INPUT_SHARD="${{ github.event.inputs.shard }}"
+          if [ -z "$INPUT_SHARD" ]; then
+            INPUT_SHARD="${{ github.event.client_payload.shard }}"
+          fi
+          if [ -z "$INPUT_SHARD" ] || [ "$INPUT_SHARD" = "all" ]; then
+            echo "shards=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]" >> $GITHUB_OUTPUT
+          else
+            echo "shards=[$INPUT_SHARD]" >> $GITHUB_OUTPUT
+          fi
+
   classify:
+    needs: setup
     runs-on: ubuntu-latest
     timeout-minutes: 350 # Just under GitHub's 6hr limit
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.setup.outputs.shards) }}
     permissions:
       actions: write
 
@@ -77,15 +104,17 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
+          SHARD_ID: ${{ matrix.shard }}
+          NUM_SHARDS: 20
         run: |
-          python satya.py
+          python satya.py --shard $SHARD_ID --num-shards $NUM_SHARDS
 
       # 9. Upload logs as artifact for debugging
       - name: Upload Log File
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: satya-classifier-log-${{ github.run_number }}
+          name: satya-classifier-log-${{ matrix.shard }}-${{ github.run_number }}
           path: "*.log"
           retention-days: 7
 
@@ -108,19 +137,20 @@ jobs:
           repository: raam-07/satya-entity-library
           event-type: trigger-entity-updater
 
-
       - name: Trigger next Classifier run if remaining
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
+          SHARD_ID: ${{ matrix.shard }}
         run: |
-          REMAINING=$(python -c "
+          REMAINING_SHARD=$(python -c "
           import os, urllib.request, json
           URL = os.environ['SATYA_DB_URL']
           TOK = os.environ['SATYA_DB_TOKEN']
+          shard = int(os.environ['SHARD_ID'])
           host = URL.replace('libsql://', 'https://').rstrip('/')
-          stmt = {'sql': 'SELECT id FROM articles WHERE status = \'rephrased\' LIMIT 1'}
+          stmt = {'sql': 'SELECT id FROM articles WHERE status = \'rephrased\' AND (id % 20) = ? LIMIT 1', 'args': [shard]}
           body = {'requests':[{'type':'execute','stmt':stmt},{'type':'close'}]}
           req = urllib.request.Request(host+'/v2/pipeline', data=json.dumps(body).encode(),
                   headers={'Authorization':f'Bearer {TOK}','Content-Type':'application/json'})
@@ -129,21 +159,40 @@ jobs:
           rows = res['results'][0]['response']['result']['rows']
           print(len(rows))
           ")
-          echo "Remaining rephrased articles: $REMAINING"
-          if [ "$REMAINING" -gt 0 ]; then
-            echo "More rephrased articles remain. Triggering next Classifier run..."
+          echo "Remaining rephrased articles for shard $SHARD_ID: $REMAINING_SHARD"
+          
+          if [ "$REMAINING_SHARD" -gt 0 ]; then
+            echo "More rephrased articles remain for shard $SHARD_ID. Triggering next Classifier run..."
             curl -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/actions/workflows/satya_classifier.yml/dispatches \
-              -d '{"ref":"${{ github.ref_name }}"}'
+              -d "{\"ref\":\"${{ github.ref_name }}\", \"inputs\": {\"shard\": \"$SHARD_ID\"}}"
           else
-            echo "All rephrased articles classified. Triggering Timeline Service..."
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.TIMELINE_UPDATER_PAT }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/raam-07/satya-timeline-service/actions/workflows/timeline_service.yml/dispatches \
-              -d '{"ref":"main"}'
+            echo "All rephrased articles for shard $SHARD_ID classified. Checking total remaining in database..."
+            REMAINING_TOTAL=$(python -c "
+            import os, urllib.request, json
+            URL = os.environ['SATYA_DB_URL']
+            TOK = os.environ['SATYA_DB_TOKEN']
+            host = URL.replace('libsql://', 'https://').rstrip('/')
+            stmt = {'sql': 'SELECT id FROM articles WHERE status = \'rephrased\' LIMIT 1'}
+            body = {'requests':[{'type':'execute','stmt':stmt},{'type':'close'}]}
+            req = urllib.request.Request(host+'/v2/pipeline', data=json.dumps(body).encode(),
+                    headers={'Authorization':f'Bearer {TOK}','Content-Type':'application/json'})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                res = json.load(r)
+            rows = res['results'][0]['response']['result']['rows']
+            print(len(rows))
+            ")
+            echo "Total remaining rephrased articles across database: $REMAINING_TOTAL"
+            if [ "$REMAINING_TOTAL" -eq 0 ]; then
+              echo "Database completely caught up. Triggering Timeline Service..."
+              curl -X POST \
+                -H "Authorization: token ${{ secrets.TIMELINE_UPDATER_PAT }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                https://api.github.com/repos/raam-07/satya-timeline-service/actions/workflows/timeline_service.yml/dispatches \
+                -d '{"ref":"main"}'
+            else
+              echo "Some other shards are still processing. Skipping Timeline Service trigger."
+            fi
           fi
-
-
