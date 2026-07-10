@@ -135,6 +135,7 @@ def insert_article_entities(cursor, article_id, enriched_article):
         ('topic', enriched_article.get('topic_tags', []))
     ]
     cursor.execute("DELETE FROM article_entities WHERE article_id = ?", (article_id,))
+    entity_rows = []
     for kind, items in kinds:
         if isinstance(items, list):
             for item in set(items):
@@ -142,10 +143,12 @@ def insert_article_entities(cursor, article_id, enriched_article):
                     continue
                 slug = party_slugify(item) if kind == 'party' else slugify(item)
                 if slug:
-                    cursor.execute("""
-                        INSERT OR IGNORE INTO article_entities (article_id, kind, slug)
-                        VALUES (?, ?, ?)
-                    """, (article_id, kind, slug))
+                    entity_rows.append((article_id, kind, slug))
+    if entity_rows:
+        cursor.executemany("""
+            INSERT OR IGNORE INTO article_entities (article_id, kind, slug)
+            VALUES (?, ?, ?)
+        """, entity_rows)
 
 MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
 
@@ -901,100 +904,37 @@ def main():
                     conn = get_db_connection()
                     cursor = conn.cursor()
                     
-                    # Resolve source_id
-                    source_name = enriched_article.get('source', 'Unknown')
-                    cursor.execute("INSERT OR IGNORE INTO sources (name) VALUES (?)", (source_name,))
-                    cursor.execute("SELECT id FROM sources WHERE name = ?", (source_name,))
-                    source_id = cursor.fetchone()[0]
-                    
                     # Compress rephrased summary and full content
                     compressed_rephrased = zlib.compress(enriched_article.get('rephrased_article', '').encode('utf-8'))
-                    compressed_content = zlib.compress(enriched_article.get('content', '').encode('utf-8'))
                     
-                    # Parse dates to timestamps
-                    def parse_date_to_timestamp(date_str):
-                        if not date_str:
-                            return int(time.time())
-                        try:
-                            clean_date = date_str.split('.')[0]
-                            dt = time.strptime(clean_date, "%Y-%m-%d %H:%M:%S")
-                            return int(time.mktime(dt))
-                        except Exception:
-                            try:
-                                clean_date = date_str.split(' ')[0]
-                                dt = time.strptime(clean_date, "%Y-%m-%d")
-                                return int(time.mktime(dt))
-                            except Exception:
-                                return int(time.time())
-
-                    scraped_timestamp = parse_date_to_timestamp(enriched_article.get('scraped_at'))
                     classified_timestamp = int(time.time())
-                    
-                    # Update row in database matching scraper ID
                     article_id = enriched_article.get('id')
-                    cursor.execute("SELECT id FROM articles WHERE id = ?", (article_id,))
-                    exists = cursor.fetchone()
-                    
                     db_civic_flag = 1 if civic_flag else 0
                     
-                    if exists:
-                        cursor.execute("""
-                            UPDATE articles 
-                            SET category = ?, sentiment = ?, sentiment_target = ?, rephrased_article = ?,
-                                party_mentioned = ?, ministers_mentioned = ?, states_mentioned = ?, 
-                                cities_mentioned = ?, topic_tags = ?, civic_flag = ?, civic_flag_score = ?,
-                                civic_flag_category = ?, civic_flag_reason = ?, classified_at = ?, status = 'classified'
-                            WHERE id = ?
-                        """, (
-                            enriched_article.get('category', 'other'),
-                            enriched_article.get('sentiment', 'neutral'),
-                            enriched_article.get('sentiment_target', ''),
-                            compressed_rephrased,
-                            json.dumps(enriched_article.get('party_mentioned', [])),
-                            json.dumps(enriched_article.get('ministers_mentioned', [])),
-                            json.dumps(enriched_article.get('states_mentioned', [])),
-                            json.dumps(enriched_article.get('cities_mentioned', [])),
-                            json.dumps(enriched_article.get('topic_tags', [])),
-                            db_civic_flag,
-                            enriched_article.get('civic_flag_score', 0),
-                            enriched_article.get('civic_flag_category'),
-                            enriched_article.get('civic_flag_reason'),
-                            classified_timestamp,
-                            article_id
-                        ))
-                    else:
-                        cursor.execute("""
-                            INSERT INTO articles (
-                                id, cluster_id, source_id, title, url, content, image_url, scraped_at,
-                                category, sentiment, sentiment_target, rephrased_article,
-                                party_mentioned, ministers_mentioned, states_mentioned, cities_mentioned, topic_tags,
-                                civic_flag, civic_flag_score, civic_flag_category, civic_flag_reason,
-                                classified_at, status
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'classified')
-                        """, (
-                            article_id,
-                            enriched_article.get('cluster_id', ''),
-                            source_id,
-                            enriched_article.get('title', ''),
-                            enriched_article.get('url', ''),
-                            compressed_content,
-                            enriched_article.get('image_url', ''),
-                            scraped_timestamp,
-                            enriched_article.get('category', 'other'),
-                            enriched_article.get('sentiment', 'neutral'),
-                            enriched_article.get('sentiment_target', ''),
-                            compressed_rephrased,
-                            json.dumps(enriched_article.get('party_mentioned', [])),
-                            json.dumps(enriched_article.get('ministers_mentioned', [])),
-                            json.dumps(enriched_article.get('states_mentioned', [])),
-                            json.dumps(enriched_article.get('cities_mentioned', [])),
-                            json.dumps(enriched_article.get('topic_tags', [])),
-                            db_civic_flag,
-                            enriched_article.get('civic_flag_score', 0),
-                            enriched_article.get('civic_flag_category'),
-                            enriched_article.get('civic_flag_reason'),
-                            classified_timestamp
-                        ))
+                    cursor.execute("""
+                        UPDATE articles 
+                        SET category = ?, sentiment = ?, sentiment_target = ?, rephrased_article = ?,
+                            party_mentioned = ?, ministers_mentioned = ?, states_mentioned = ?, 
+                            cities_mentioned = ?, topic_tags = ?, civic_flag = ?, civic_flag_score = ?,
+                            civic_flag_category = ?, civic_flag_reason = ?, classified_at = ?, status = 'classified'
+                        WHERE id = ?
+                    """, (
+                        enriched_article.get('category', 'other'),
+                        enriched_article.get('sentiment', 'neutral'),
+                        enriched_article.get('sentiment_target', ''),
+                        compressed_rephrased,
+                        json.dumps(enriched_article.get('party_mentioned', [])),
+                        json.dumps(enriched_article.get('ministers_mentioned', [])),
+                        json.dumps(enriched_article.get('states_mentioned', [])),
+                        json.dumps(enriched_article.get('cities_mentioned', [])),
+                        json.dumps(enriched_article.get('topic_tags', [])),
+                        db_civic_flag,
+                        enriched_article.get('civic_flag_score', 0),
+                        enriched_article.get('civic_flag_category'),
+                        enriched_article.get('civic_flag_reason'),
+                        classified_timestamp,
+                        article_id
+                    ))
                     
                     insert_article_entities(cursor, article_id, enriched_article)
                     conn.commit()
