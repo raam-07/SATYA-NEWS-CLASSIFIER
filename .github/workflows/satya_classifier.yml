@@ -75,7 +75,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./models
-          key: gemma-2-9b-it-Q6_K
+          key: gemma-2-9b-it-Q4_K_M
 
       # 6. Download the Gemma model only if not cached
       - name: Download Gemma Model
@@ -87,7 +87,7 @@ jobs:
           from huggingface_hub import hf_hub_download
           hf_hub_download(
             repo_id='bartowski/gemma-2-9b-it-GGUF',
-            filename='gemma-2-9b-it-Q6_K.gguf',
+            filename='gemma-2-9b-it-Q4_K_M.gguf',
             local_dir='./models'
           )
           "
