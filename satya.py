@@ -147,7 +147,7 @@ def insert_article_entities(cursor, article_id, enriched_article):
                         VALUES (?, ?, ?)
                     """, (article_id, kind, slug))
 
-MODEL_PATH = "./models/gemma-2-9b-it-Q4_K_M.gguf"
+MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
 
 MAX_ARTICLES_TO_PROCESS = 50
 MAX_RUNTIME_SECONDS = 5 * 3600
