@@ -145,21 +145,20 @@ jobs:
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
           SHARD_ID: ${{ matrix.shard }}
         run: |
-          REMAINING_SHARD=$(python -c "
-          import os, urllib.request, json
-          URL = os.environ['SATYA_DB_URL'].strip()
-          TOK = os.environ['SATYA_DB_TOKEN'].strip()
-          shard = int(os.environ['SHARD_ID'])
-          host = URL.replace('libsql://', 'https://').rstrip('/')
-          stmt = {'sql': f'SELECT id FROM articles WHERE status = \'rephrased\' AND (id % 20) = {shard} LIMIT 1'}
-          body = {'requests':[{'type':'execute','stmt':stmt},{'type':'close'}]}
-          req = urllib.request.Request(host+'/v2/pipeline', data=json.dumps(body).encode(),
-                  headers={'Authorization':f'Bearer {TOK}','Content-Type':'application/json'})
-          with urllib.request.urlopen(req, timeout=30) as r:
-              res = json.load(r)
-          rows = res['results'][0]['response']['result']['rows']
-          print(len(rows))
-          ")
+          REMAINING_SHARD=$(node -e '
+            const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
+            const token = process.env.SATYA_DB_TOKEN.trim();
+            const shard = process.env.SHARD_ID;
+            const stmt = { sql: `SELECT id FROM articles WHERE status = "rephrased" AND (id % 20) = ${shard} LIMIT 1` };
+            fetch(url + "/v2/pipeline", {
+              method: "POST",
+              headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+              body: JSON.stringify({ requests: [ { type: "execute", stmt }, { type: "close" } ] })
+            })
+            .then(res => res.json())
+            .then(res => console.log(res.results[0].response.result.rows.length))
+            .catch(() => console.log(0));
+          ')
           echo "Remaining rephrased articles for shard $SHARD_ID: $REMAINING_SHARD"
           
           if [ "$REMAINING_SHARD" -gt 0 ]; then
@@ -171,20 +170,19 @@ jobs:
               -d "{\"ref\":\"${{ github.ref_name }}\", \"inputs\": {\"shard\": \"$SHARD_ID\"}}"
           else
             echo "All rephrased articles for shard $SHARD_ID classified. Checking total remaining in database..."
-            REMAINING_TOTAL=$(python -c "
-            import os, urllib.request, json
-            URL = os.environ['SATYA_DB_URL'].strip()
-            TOK = os.environ['SATYA_DB_TOKEN'].strip()
-            host = URL.replace('libsql://', 'https://').rstrip('/')
-            stmt = {'sql': 'SELECT id FROM articles WHERE status = \'rephrased\' LIMIT 1'}
-            body = {'requests':[{'type':'execute','stmt':stmt},{'type':'close'}]}
-            req = urllib.request.Request(host+'/v2/pipeline', data=json.dumps(body).encode(),
-                    headers={'Authorization':f'Bearer {TOK}','Content-Type':'application/json'})
-            with urllib.request.urlopen(req, timeout=30) as r:
-                res = json.load(r)
-            rows = res['results'][0]['response']['result']['rows']
-            print(len(rows))
-            ")
+            REMAINING_TOTAL=$(node -e '
+            const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
+            const token = process.env.SATYA_DB_TOKEN.trim();
+            const stmt = { sql: "SELECT id FROM articles WHERE status = \"rephrased\" LIMIT 1" };
+            fetch(url + "/v2/pipeline", {
+              method: "POST",
+              headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+              body: JSON.stringify({ requests: [ { type: "execute", stmt }, { type: "close" } ] })
+            })
+            .then(res => res.json())
+            .then(res => console.log(res.results[0].response.result.rows.length))
+            .catch(() => console.log(0));
+          ')
             echo "Total remaining rephrased articles across database: $REMAINING_TOTAL"
             if [ "$REMAINING_TOTAL" -eq 0 ]; then
               echo "Database completely caught up. Triggering Timeline Service..."
