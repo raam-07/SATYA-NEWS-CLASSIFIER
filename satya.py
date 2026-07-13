@@ -365,10 +365,30 @@ def rule_based_classify(title, content):
     # Party detection
     parties_found = []
     for party in PARTIES:
-        if re.search(r'\b' + re.escape(party) + r'\b', full_text, re.IGNORECASE):
-            # Congress disambiguation — skip if US Congress context
+        # All-caps acronyms (SAD, AAP, INC, TMC, ...) must match case-sensitively:
+        # otherwise the English word "sad", Hindi "aap" in quotes, and "Inc." in
+        # company names all get tagged as parties. Mixed-case names stay
+        # case-insensitive (same policy as single-word minister aliases).
+        if party.isupper():
+            matched = re.search(r'\b' + re.escape(party) + r'\b', full_text)
+        else:
+            matched = re.search(r'\b' + re.escape(party) + r'\b', full_text, re.IGNORECASE)
+        if matched:
+            # Congress disambiguation — skip when the text reads as US politics
+            # (e.g. "testimony to Congress", "Congress in Washington") and there
+            # is no explicit Indian-Congress signal to override it.
             if party in ['Congress', 'INC']:
-                if re.search(r'us congress|american congress|congressional|u\.s\. congress', text_lower):
+                us_context = re.search(
+                    r'us congress|american congress|congressional|u\.s\. congress'
+                    r'|house of representatives|capitol hill|white house'
+                    r'|\bsenate\b|\bsenator\b|testimony to congress|library of congress',
+                    text_lower)
+                indian_signal = re.search(
+                    r'congress party|indian national congress|\baicc\b|\bkpcc\b|\btncc\b|\bupcc\b'
+                    r'|rahul gandhi|sonia gandhi|priyanka gandhi|kharge|congress mla|congress mp'
+                    r'|congress leader|congress govern|congress worker',
+                    text_lower)
+                if us_context and not indian_signal:
                     continue
             if party not in parties_found:
                 parties_found.append(party)
