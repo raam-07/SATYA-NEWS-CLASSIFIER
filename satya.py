@@ -439,6 +439,18 @@ def rule_based_classify(title, content):
     # A topic is only tagged if:
     # 1. A strong keyword is found (always qualifies alone), OR
     # 2. Multiple regular keywords are found (min_hits threshold)
+    #
+    # Matching is WORD-BOUNDED, never substring: bare substring matching tagged
+    # a wildlife story as rape_sexual_crime ("rape" in "scraped") and almost
+    # every article as foreign_policy ("LoC" in "local", "LAC" in "palace").
+    # Short acronyms (LoC, LAC, ED, GST...) additionally match case-sensitively
+    # so "loc"/"lac" as ordinary words can't trigger them.
+    def _topic_kw_match(kw):
+        is_acronym = kw != kw.lower() and len(kw) <= 6
+        if is_acronym:
+            return re.search(r'\b' + re.escape(kw) + r'\b', full_text) is not None
+        return re.search(r'\b' + re.escape(kw.lower()) + r'\b', text_lower) is not None
+
     topics_found = []
     for topic, config in TOPIC_KEYWORDS.items():
         keywords = config["keywords"]
@@ -446,13 +458,12 @@ def rule_based_classify(title, content):
         strong_keywords = config.get("strong_keywords", [])
 
         # Check for strong keyword match first — immediate tag
-        strong_match = any(kw.lower() in text_lower for kw in strong_keywords)
-        if strong_match:
+        if any(_topic_kw_match(kw) for kw in strong_keywords):
             topics_found.append(topic)
             continue
 
         # Otherwise count regular keyword hits
-        hits = sum(1 for kw in keywords if kw.lower() in text_lower)
+        hits = sum(1 for kw in keywords if _topic_kw_match(kw))
         if hits >= min_hits:
             topics_found.append(topic)
 
