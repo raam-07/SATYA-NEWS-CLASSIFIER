@@ -45,18 +45,50 @@ jobs:
       actions: write
 
     steps:
+      # 0. Pre-check Database for Classification
+      - name: Pre-check Database for Classification
+        id: pre-check
+        env:
+          SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
+          SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
+          SHARD_ID: ${{ matrix.shard }}
+        run: |
+          REMAINING=$(node -e '
+            const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
+            const token = process.env.SATYA_DB_TOKEN.trim();
+            const shard = Number(process.env.SHARD_ID);
+            const stmt = { sql: `SELECT id FROM articles WHERE status = "rephrased" AND (id % 20) = ${shard} LIMIT 1` };
+            fetch(url + "/v2/pipeline", {
+              method: "POST",
+              headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+              body: JSON.stringify({ requests: [ { type: "execute", stmt }, { type: "close" } ] })
+            })
+            .then(res => res.json())
+            .then(res => console.log(res.results[0].response.result.rows.length))
+            .catch(() => console.log(0));
+          ')
+          echo "Remaining: $REMAINING"
+          if [ "$REMAINING" -gt 0 ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
       # 1. Checkout the repo
       - name: Checkout Repository
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         uses: actions/checkout@v4
 
       # 2. Set up Python
       - name: Set up Python 3.10
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       # 3. Cache pip dependencies for faster runs
       - name: Cache pip dependencies
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -66,12 +98,14 @@ jobs:
 
       # 4. Install dependencies
       - name: Install Dependencies
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         run: |
           pip install --upgrade pip
           pip install gspread oauth2client llama-cpp-python huggingface_hub libsql
 
       # 5. Cache the Gemma model so it doesn't download every run
       - name: Cache Gemma Model
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         id: cache-model
         uses: actions/cache@v4
         with:
@@ -80,7 +114,7 @@ jobs:
 
       # 6. Download the Gemma model only if not cached
       - name: Download Gemma Model
-        if: steps.cache-model.outputs.cache-hit != 'true'
+        if: ${{ steps.pre-check.outputs.should_run == 'true' && steps.cache-model.outputs.cache-hit != 'true' }}
         run: |
           mkdir -p ./models
           echo "Downloading Gemma 9B IT model via huggingface_hub..."
@@ -96,11 +130,13 @@ jobs:
 
       # 7. Verify model exists
       - name: Verify Model
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         run: |
           ls -lh ./models/
 
       # 8. Run the classifier
       - name: Run Satya Classifier
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
@@ -112,7 +148,7 @@ jobs:
 
       # 9. Upload logs as artifact for debugging
       - name: Upload Log File
-        if: always()
+        if: ${{ always() && steps.pre-check.outputs.should_run == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: satya-classifier-log-${{ matrix.shard }}-${{ github.run_number }}
@@ -121,6 +157,7 @@ jobs:
 
       # 9.5. Revalidate and Pre-warm Cache
       - name: Revalidate and Pre-warm Cache
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         env:
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
         run: |
@@ -132,6 +169,7 @@ jobs:
 
       # 10. Trigger Entity Updater Instantly
       - name: Trigger Entity Updater Instantly
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.ENTITY_UPDATER_PAT }}
@@ -139,6 +177,7 @@ jobs:
           event-type: trigger-entity-updater
 
       - name: Trigger next Classifier run if remaining
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
