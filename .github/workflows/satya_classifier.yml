@@ -155,17 +155,7 @@ jobs:
           path: "*.log"
           retention-days: 7
 
-      # 9.5. Revalidate and Pre-warm Cache
-      - name: Revalidate and Pre-warm Cache
-        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
-        env:
-          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-        run: |
-          echo "Revalidating all content caches..."
-          curl -s -X POST "https://satyadheesh.in/api/revalidate?secret=${REVALIDATE_SECRET}"
-          echo "Pre-warming cache..."
-          curl -s "https://satyadheesh.in/" > /dev/null
-          curl -s "https://satyadheesh.in/api/data?type=indiaOverview" > /dev/null
+
 
       # 10. Trigger Entity Updater Instantly
       - name: Trigger Entity Updater Instantly
@@ -183,6 +173,7 @@ jobs:
           SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
           SHARD_ID: ${{ matrix.shard }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
         run: |
           REMAINING_SHARD=$(node -e '
             const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
@@ -224,7 +215,13 @@ jobs:
           ')
             echo "Total remaining rephrased articles across database: $REMAINING_TOTAL"
             if [ "$REMAINING_TOTAL" -eq 0 ]; then
-              echo "Database completely caught up. Triggering Timeline Service..."
+              echo "Database completely caught up. Revalidating all content caches..."
+              curl -s -X POST "https://satyadheesh.in/api/revalidate?secret=${REVALIDATE_SECRET}"
+              echo "Pre-warming cache..."
+              curl -s "https://satyadheesh.in/" > /dev/null
+              curl -s "https://satyadheesh.in/api/data?type=indiaOverview" > /dev/null
+
+              echo "Triggering Timeline Service..."
               curl -X POST \
                 -H "Authorization: token ${{ secrets.TIMELINE_UPDATER_PAT }}" \
                 -H "Accept: application/vnd.github.v3+json" \
