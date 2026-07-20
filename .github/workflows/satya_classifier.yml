@@ -54,8 +54,8 @@ jobs:
           SHARD_ID: ${{ matrix.shard }}
         run: |
           REMAINING=$(node -e '
-            const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
-            const token = process.env.SATYA_DB_TOKEN.trim();
+            const url = process.env.SATYA_DB_URL.trim().replace(/^["']|["']$/g, "").replace("libsql://", "https://").replace(/\/$/, "");
+            const token = process.env.SATYA_DB_TOKEN.trim().replace(/^["']|["']$/g, "");
             const shard = Number(process.env.SHARD_ID);
             const stmt = { sql: `SELECT id FROM articles WHERE status = 'rephrased' AND (id % 20) = ${shard} LIMIT 1` };
             fetch(url + "/v2/pipeline", {
@@ -176,8 +176,8 @@ jobs:
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
         run: |
           REMAINING_SHARD=$(node -e '
-            const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
-            const token = process.env.SATYA_DB_TOKEN.trim();
+            const url = process.env.SATYA_DB_URL.trim().replace(/^["']|["']$/g, "").replace("libsql://", "https://").replace(/\/$/, "");
+            const token = process.env.SATYA_DB_TOKEN.trim().replace(/^["']|["']$/g, "");
             const shard = process.env.SHARD_ID;
             const stmt = { sql: `SELECT id FROM articles WHERE status = 'rephrased' AND (id % 20) = ${shard} LIMIT 1` };
             fetch(url + "/v2/pipeline", {
