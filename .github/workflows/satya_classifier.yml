@@ -46,19 +46,6 @@ jobs:
 
     steps:
       # 0. Pre-check Database for Classification
-      - name: Debug Secret Credentials
-        env:
-          SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
-          SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
-        run: |
-          echo "Secret URL Length: ${#SATYA_DB_URL}"
-          echo "Secret Token Length: ${#SATYA_DB_TOKEN}"
-          # Print the URL prefix/suffix safely
-          CLEANED_URL=$(echo "$SATYA_DB_URL" | xargs | tr -d '"'\''')
-          echo "URL Cleaned Length: ${#CLEANED_URL}"
-          echo "URL Prefix: ${CLEANED_URL:0:30}"
-          echo "URL Suffix: ${CLEANED_URL: -15}"
-
       - name: Pre-check Database for Classification
         id: pre-check
         env:
@@ -280,7 +267,7 @@ jobs:
                       print(f"Cache pre-warm failed: {e}")
                       
                   print("Triggering Timeline Service...")
-                  timeline_url = "https://api.github.com/repos/raam-07/satya-timeline-service/actions/workflows/timeline_service.yml/dispatches"
+                  timeline_url = "https://api.github.com/repos/Satyadheesh/satya-timeline-service/actions/workflows/timeline_pipeline.yml/dispatches"
                   headers_timeline = {
                       "Authorization": f"token {os.environ['TIMELINE_UPDATER_PAT']}",
                       "Accept": "application/vnd.github.v3+json"
