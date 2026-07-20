@@ -57,7 +57,7 @@ jobs:
             const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
             const token = process.env.SATYA_DB_TOKEN.trim();
             const shard = Number(process.env.SHARD_ID);
-            const stmt = { sql: `SELECT id FROM articles WHERE status = "rephrased" AND (id % 20) = ${shard} LIMIT 1` };
+            const stmt = { sql: `SELECT id FROM articles WHERE status = 'rephrased' AND (id % 20) = ${shard} LIMIT 1` };
             fetch(url + "/v2/pipeline", {
               method: "POST",
               headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
@@ -179,7 +179,7 @@ jobs:
             const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
             const token = process.env.SATYA_DB_TOKEN.trim();
             const shard = process.env.SHARD_ID;
-            const stmt = { sql: `SELECT id FROM articles WHERE status = "rephrased" AND (id % 20) = ${shard} LIMIT 1` };
+            const stmt = { sql: `SELECT id FROM articles WHERE status = 'rephrased' AND (id % 20) = ${shard} LIMIT 1` };
             fetch(url + "/v2/pipeline", {
               method: "POST",
               headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
