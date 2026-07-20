@@ -53,26 +53,36 @@ jobs:
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
           SHARD_ID: ${{ matrix.shard }}
         run: |
-          REMAINING=$(node -e '
-            const url = process.env.SATYA_DB_URL.trim().replace(/^[\"\x27]|[\"\x27]$/g, "").replace("libsql://", "https://").replace(/\/$/, "");
-            const token = process.env.SATYA_DB_TOKEN.trim().replace(/^[\"\x27]|[\"\x27]$/g, "");
-            const shard = Number(process.env.SHARD_ID);
-            const stmt = { sql: `SELECT id FROM articles WHERE status = \x27rephrased\x27 AND (id % 20) = ${shard} LIMIT 1` };
-            fetch(url + "/v2/pipeline", {
-              method: "POST",
-              headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
-              body: JSON.stringify({ requests: [ { type: "execute", stmt }, { type: "close" } ] })
-            })
-            .then(res => res.json())
-            .then(res => console.log(res.results[0].response.result.rows.length))
-            .catch(() => console.log(0));
-          ')
-          echo "Remaining: $REMAINING"
-          if [ "$REMAINING" -gt 0 ]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          fi
+          python3 << 'EOF'
+          import os, urllib.request, json
+          url = os.environ['SATYA_DB_URL'].strip().strip('\"\'').replace('libsql://', 'https://').rstrip('/')
+          token = os.environ['SATYA_DB_TOKEN'].strip().strip('\"\'')
+          shard = int(os.environ['SHARD_ID'])
+          stmt = {
+              'sql': f"SELECT id FROM articles WHERE status = 'rephrased' AND (id % 20) = {shard} LIMIT 1"
+          }
+          req = urllib.request.Request(
+              url + '/v2/pipeline',
+              data=json.dumps({'requests': [ { 'type': 'execute', 'stmt': stmt }, { 'type': 'close' } ]}).encode('utf-8'),
+              headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+              method='POST'
+          )
+          remaining = 0
+          try:
+              with urllib.request.urlopen(req) as r:
+                  res = json.loads(r.read().decode('utf-8'))
+                  rows = res['results'][0]['response']['result']['rows']
+                  remaining = len(rows)
+          except Exception as e:
+              print(f'Error: {e}')
+          
+          print(f"Remaining: {remaining}")
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              if remaining > 0:
+                  f.write('should_run=true\n')
+              else:
+                  f.write('should_run=false\n')
+          EOF
 
       # 1. Checkout the repo
       - name: Checkout Repository
@@ -174,60 +184,100 @@ jobs:
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
           SHARD_ID: ${{ matrix.shard }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          TIMELINE_UPDATER_PAT: ${{ secrets.TIMELINE_UPDATER_PAT }}
         run: |
-          REMAINING_SHARD=$(node -e '
-            const url = process.env.SATYA_DB_URL.trim().replace(/^[\"\x27]|[\"\x27]$/g, "").replace("libsql://", "https://").replace(/\/$/, "");
-            const token = process.env.SATYA_DB_TOKEN.trim().replace(/^[\"\x27]|[\"\x27]$/g, "");
-            const shard = process.env.SHARD_ID;
-            const stmt = { sql: `SELECT id FROM articles WHERE status = \x27rephrased\x27 AND (id % 20) = ${shard} LIMIT 1` };
-            fetch(url + "/v2/pipeline", {
-              method: "POST",
-              headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
-              body: JSON.stringify({ requests: [ { type: "execute", stmt }, { type: "close" } ] })
-            })
-            .then(res => res.json())
-            .then(res => console.log(res.results[0].response.result.rows.length))
-            .catch(() => console.log(0));
-          ')
-          echo "Remaining rephrased articles for shard $SHARD_ID: $REMAINING_SHARD"
+          python3 << 'EOF'
+          import os, urllib.request, json, subprocess
+          url = os.environ['SATYA_DB_URL'].strip().strip('\"\'').replace('libsql://', 'https://').rstrip('/')
+          token = os.environ['SATYA_DB_TOKEN'].strip().strip('\"\'')
+          shard = int(os.environ['SHARD_ID'])
           
-          if [ "$REMAINING_SHARD" -gt 0 ]; then
-            echo "More rephrased articles remain for shard $SHARD_ID. Triggering next Classifier run..."
-            curl -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/satya_classifier.yml/dispatches \
-              -d "{\"ref\":\"${{ github.ref_name }}\", \"inputs\": {\"shard\": \"$SHARD_ID\"}}"
-          else
-            echo "All rephrased articles for shard $SHARD_ID classified. Checking total remaining in database..."
-            REMAINING_TOTAL=$(node -e '
-            const url = process.env.SATYA_DB_URL.trim().replace("libsql://", "https://").replace(/\/$/, "");
-            const token = process.env.SATYA_DB_TOKEN.trim();
-            const stmt = { sql: "SELECT id FROM articles WHERE status = \"rephrased\" LIMIT 1" };
-            fetch(url + "/v2/pipeline", {
-              method: "POST",
-              headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
-              body: JSON.stringify({ requests: [ { type: "execute", stmt }, { type: "close" } ] })
-            })
-            .then(res => res.json())
-            .then(res => console.log(res.results[0].response.result.rows.length))
-            .catch(() => console.log(0));
-          ')
-            echo "Total remaining rephrased articles across database: $REMAINING_TOTAL"
-            if [ "$REMAINING_TOTAL" -eq 0 ]; then
-              echo "Database completely caught up. Revalidating all content caches..."
-              curl -s -X POST "https://satyadheesh.in/api/revalidate?secret=${REVALIDATE_SECRET}"
-              echo "Pre-warming cache..."
-              curl -s "https://satyadheesh.in/" > /dev/null
-              curl -s "https://satyadheesh.in/api/data?type=indiaOverview" > /dev/null
-
-              echo "Triggering Timeline Service..."
-              curl -X POST \
-                -H "Authorization: token ${{ secrets.TIMELINE_UPDATER_PAT }}" \
-                -H "Accept: application/vnd.github.v3+json" \
-                https://api.github.com/repos/raam-07/satya-timeline-service/actions/workflows/timeline_service.yml/dispatches \
-                -d '{"ref":"main"}'
-            else
-              echo "Some other shards are still processing. Skipping Timeline Service trigger."
-            fi
-          fi
+          # Check remaining for this shard
+          stmt_shard = {
+              'sql': f"SELECT id FROM articles WHERE status = 'rephrased' AND (id % 20) = {shard} LIMIT 1"
+          }
+          req_shard = urllib.request.Request(
+              url + '/v2/pipeline',
+              data=json.dumps({'requests': [ { 'type': 'execute', 'stmt': stmt_shard }, { 'type': 'close' } ]}).encode('utf-8'),
+              headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+              method='POST'
+          )
+          
+          remaining_shard = 0
+          try:
+              with urllib.request.urlopen(req_shard) as r:
+                  res = json.loads(r.read().decode('utf-8'))
+                  remaining_shard = len(res['results'][0]['response']['result']['rows'])
+          except Exception as e:
+              print(f"Error checking shard remaining: {e}")
+              
+          print(f"Remaining rephrased articles for shard {shard}: {remaining_shard}")
+          
+          if remaining_shard > 0:
+              print(f"More rephrased articles remain for shard {shard}. Triggering next Classifier run...")
+              ref = "${{ github.ref_name }}"
+              repo = "${{ github.repository }}"
+              dispatch_url = f"https://api.github.com/repos/{repo}/actions/workflows/satya_classifier.yml/dispatches"
+              headers = {
+                  "Authorization": f"token {os.environ['GITHUB_TOKEN']}",
+                  "Accept": "application/vnd.github.v3+json"
+              }
+              body = json.dumps({"ref": ref, "inputs": {"shard": str(shard)}})
+              try:
+                  req = urllib.request.Request(dispatch_url, data=body.encode('utf-8'), headers=headers, method='POST')
+                  urllib.request.urlopen(req)
+                  print("Workflow dispatched successfully.")
+              except Exception as e:
+                  print(f"Failed to dispatch workflow: {e}")
+          else:
+              print(f"All rephrased articles for shard {shard} classified. Checking total remaining in database...")
+              stmt_total = {
+                  'sql': "SELECT id FROM articles WHERE status = 'rephrased' LIMIT 1"
+              }
+              req_total = urllib.request.Request(
+                  url + '/v2/pipeline',
+                  data=json.dumps({'requests': [ { 'type': 'execute', 'stmt': stmt_total }, { 'type': 'close' } ]}).encode('utf-8'),
+                  headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+                  method='POST'
+              )
+              remaining_total = 0
+              try:
+                  with urllib.request.urlopen(req_total) as r:
+                      res = json.loads(r.read().decode('utf-8'))
+                      remaining_total = len(res['results'][0]['response']['result']['rows'])
+              except Exception as e:
+                  print(f"Error checking total remaining: {e}")
+                  
+              print(f"Total remaining rephrased articles across database: {remaining_total}")
+              if remaining_total == 0:
+                  print("Database completely caught up. Revalidating all content caches...")
+                  revalidate_url = f"https://satyadheesh.in/api/revalidate?secret={os.environ['REVALIDATE_SECRET']}"
+                  try:
+                      urllib.request.urlopen(revalidate_url)
+                      print("Revalidation trigger sent.")
+                  except Exception as e:
+                      print(f"Revalidation failed: {e}")
+                      
+                  # Pre-warm cache
+                  try:
+                      urllib.request.urlopen("https://satyadheesh.in/")
+                      urllib.request.urlopen("https://satyadheesh.in/api/data?type=indiaOverview")
+                      print("Cache pre-warmed.")
+                  except Exception as e:
+                      print(f"Cache pre-warm failed: {e}")
+                      
+                  print("Triggering Timeline Service...")
+                  timeline_url = "https://api.github.com/repos/raam-07/satya-timeline-service/actions/workflows/timeline_service.yml/dispatches"
+                  headers_timeline = {
+                      "Authorization": f"token {os.environ['TIMELINE_UPDATER_PAT']}",
+                      "Accept": "application/vnd.github.v3+json"
+                  }
+                  try:
+                      req_t = urllib.request.Request(timeline_url, data=b'{"ref":"main"}', headers=headers_timeline, method='POST')
+                      urllib.request.urlopen(req_t)
+                      print("Timeline service triggered.")
+                  except Exception as e:
+                      print(f"Failed to trigger timeline service: {e}")
+              else:
+                  print("Some other shards are still processing. Skipping Timeline Service trigger.")
+          EOF
