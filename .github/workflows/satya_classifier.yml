@@ -286,3 +286,14 @@ jobs:
               else:
                   print("Some other shards are still processing. Skipping Timeline Service trigger.")
           EOF
+
+
+  keepalive:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keepalive Workflow
+        uses: gautamkrishnar/keepalive-workflow@v2
