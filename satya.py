@@ -493,6 +493,20 @@ def ai_classify(llm, title, rephrased_article):
 You are a news classifier. Analyze the news article below and return ONLY a valid JSON object with these exact fields:
 
 1. "category": one of — politics, crime, economy, international, regional, health, education, environment, sports, other
+   How to choose "international" (this rule overrides the topic):
+   - If the story happens outside India and has NO Indian angle, the category MUST be "international",
+     whatever its topic — foreign politics, crime, sport, health, business, science and celebrity news included.
+   - An Indian angle means the story involves India, Indian citizens, the Indian government, an Indian
+     company, team, athlete or public figure, or has a direct effect on India.
+   - If there IS an Indian angle, pick the best-fitting topic category instead. Use "international" for such a
+     story only when it is about India's relations with other countries (diplomacy, summits, trade deals, borders).
+   Examples:
+     "Argentina beat Spain in the FIFA World Cup final"         -> international
+     "Ilhan Omar introduces a resolution in the US Congress"    -> international
+     "Three malaria deaths at a Frankfurt hospital"              -> international
+     "England beat India by 27 runs to win the ODI series"      -> sports
+     "Modi and Trump discuss tariffs at the G20"                 -> international
+     "Anganwadi workers strike over unpaid wages"                -> politics
 2. "sentiment": one of — negative, positive, neutral (toward the main subject/government)
 3. "sentiment_target": the main subject of the article (e.g. "BJP", "Narendra Modi", "Indian Government", "Police")
 4. "topic_tags": a list of 0-3 tags from ONLY these options — rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition, political_gaffe. Only include a tag if the article is PRIMARILY about that topic.
