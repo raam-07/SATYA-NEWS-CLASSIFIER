@@ -117,7 +117,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install gspread oauth2client huggingface_hub libsql
-          CMAKE_ARGS="-DLLAMA_AVX=OFF -DLLAMA_AVX2=OFF -DLLAMA_FMA=OFF -DLLAMA_F16C=OFF" pip install llama-cpp-python --no-binary llama-cpp-python
+          CMAKE_ARGS="-DLLAMA_AVX=OFF -DLLAMA_AVX2=OFF -DLLAMA_FMA=OFF -DLLAMA_F16C=OFF -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_FMA=OFF" pip install llama-cpp-python --no-binary llama-cpp-python
 
       # 5. Cache the Gemma model so it doesn't download every run
       - name: Cache Gemma Model
