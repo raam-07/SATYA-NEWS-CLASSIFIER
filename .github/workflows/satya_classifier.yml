@@ -190,7 +190,6 @@ jobs:
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
           SHARD_ID: ${{ matrix.shard }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-          TIMELINE_UPDATER_PAT: ${{ secrets.TIMELINE_UPDATER_PAT }}
         run: |
           python3 << 'EOF'
           import os, urllib.request, json, subprocess
@@ -257,7 +256,7 @@ jobs:
               print(f"Total remaining rephrased articles across database: {remaining_total}")
               if remaining_total == 0:
                   print("Database completely caught up. Revalidating all content caches...")
-                  revalidate_url = f"https://satyadheesh.in/api/revalidate?secret={os.environ['REVALIDATE_SECRET']}"
+                  revalidate_url = f"https://satyadheesh.in/api/revalidate?secret={os.environ['REVALIDATE_SECRET']}&force=true"
                   try:
                       urllib.request.urlopen(revalidate_url)
                       print("Revalidation trigger sent.")
@@ -272,22 +271,41 @@ jobs:
                   except Exception as e:
                       print(f"Cache pre-warm failed: {e}")
                       
-                  print("Triggering Timeline Service...")
-                  timeline_url = "https://api.github.com/repos/Satyadheesh/satya-timeline-service/actions/workflows/timeline_pipeline.yml/dispatches"
-                  headers_timeline = {
-                      "Authorization": f"token {os.environ['TIMELINE_UPDATER_PAT']}",
-                      "Accept": "application/vnd.github.v3+json"
-                  }
-                  try:
-                      req_t = urllib.request.Request(timeline_url, data=b'{"ref":"main"}', headers=headers_timeline, method='POST')
-                      urllib.request.urlopen(req_t)
-                      print("Timeline service triggered.")
-                  except Exception as e:
-                      print(f"Failed to trigger timeline service: {e}")
+                  # Timeline service runs on its daily schedule at 19:00 IST
               else:
                   print("Some other shards are still processing. Skipping Timeline Service trigger.")
           EOF
 
+
+
+  revalidate:
+    needs: [setup, classify]
+    if: always() && needs.classify.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Frontend Cache Revalidation
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          python3 -c "
+          import os, urllib.request
+          secret = os.environ.get('REVALIDATE_SECRET', '').strip()
+          if secret:
+              url = f'https://satyadheesh.in/api/revalidate?secret={secret}&force=true'
+              try:
+                  with urllib.request.urlopen(url) as resp:
+                      print('Revalidation succeeded:', resp.read().decode('utf-8'))
+              except Exception as e:
+                  print('Revalidation failed:', e)
+              try:
+                  urllib.request.urlopen('https://satyadheesh.in/')
+                  urllib.request.urlopen('https://satyadheesh.in/api/data?type=indiaOverview')
+                  print('Cache pre-warmed successfully.')
+              except Exception as e:
+                  print('Cache pre-warm failed:', e)
+          else:
+              print('REVALIDATE_SECRET not set in environment.')
+          "
 
   keepalive:
     runs-on: ubuntu-latest
