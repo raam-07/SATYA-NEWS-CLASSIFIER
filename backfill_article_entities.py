@@ -3,6 +3,7 @@ import re
 import json
 import logging
 import sqlite3
+from entity_rules import primary_states
 
 # Set up logging to stdout
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -124,13 +125,16 @@ def main():
     start_id = cursor.fetchone()[0]
     logging.info(f"Resuming backfill from article ID > {start_id}")
     
+    cursor.execute("PRAGMA table_info(articles)")
+    has_geo = "geo_focus" in [c[1] for c in cursor.fetchall()]
     total_processed = 0
     batch_size = 10000
     
     while True:
         logging.info(f"Fetching batch of {batch_size} articles starting after ID {start_id}...")
-        cursor.execute("""
-            SELECT id, party_mentioned, ministers_mentioned, states_mentioned, cities_mentioned, topic_tags
+        cursor.execute(f"""
+            SELECT id, party_mentioned, ministers_mentioned, states_mentioned, cities_mentioned, topic_tags,
+                   title, category, {'geo_focus' if has_geo else "''"}
             FROM articles
             WHERE status IN ('classified', 'entity_processed', 'processed') AND id > ?
             ORDER BY id ASC
@@ -165,7 +169,8 @@ def main():
             
             parties = parse_list(party_json)
             ministers = parse_list(ministers_json)
-            states = parse_list(states_json)
+            # /state pages: only states the article is ABOUT (see entity_rules.py)
+            states = primary_states(r[6] or "", parse_list(states_json), r[8] or "", r[7] or "")
             cities = parse_list(cities_json)
             topics = parse_list(topics_json)
             

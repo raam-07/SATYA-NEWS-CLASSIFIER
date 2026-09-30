@@ -18,6 +18,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from llama_cpp import Llama
 import argparse
+from entity_rules import primary_states
 
 # Setup argument parser for parallel sharding
 parser = argparse.ArgumentParser()
@@ -130,7 +131,8 @@ def insert_article_entities(cursor, article_id, enriched_article):
     kinds = [
         ('party', enriched_article.get('party_mentioned', [])),
         ('minister', enriched_article.get('ministers_mentioned', [])),
-        ('state', enriched_article.get('states_mentioned', [])),
+        # /state pages list what an article is ABOUT, not every state it mentions
+        ('state', enriched_article.get('primary_states', enriched_article.get('states_mentioned', []))),
         ('city', enriched_article.get('cities_mentioned', [])),
         ('topic', enriched_article.get('topic_tags', []))
     ]
@@ -799,9 +801,37 @@ No extra text.<turn|>
 # --- MAIN PIPELINE ---
 # ==============================================================================
 
+HAS_GEO_FOCUS = False
+
+def ensure_geo_focus_column():
+    """articles.geo_focus: the model's main city/district, kept so state tags can be
+    rebuilt later (backfill_article_entities.py). Additive; safe if another shard adds it first."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        global HAS_GEO_FOCUS
+        cur.execute("PRAGMA table_info(articles)")
+        if "geo_focus" in [r[1] for r in cur.fetchall()]:
+            HAS_GEO_FOCUS = True
+        else:
+            try:
+                cur.execute("ALTER TABLE articles ADD COLUMN geo_focus TEXT")
+                conn.commit()
+                HAS_GEO_FOCUS = True
+                logging.info("Added articles.geo_focus column.")
+            except Exception as e:
+                if "duplicate" not in str(e).lower():
+                    raise
+                HAS_GEO_FOCUS = True
+        conn.close()
+    except Exception as e:
+        logging.warning(f"Could not ensure geo_focus column: {e}")
+
+
 def main():
     start_time = time.time()
     logging.info("--- Satya Classifier Pipeline Started ---")
+    ensure_geo_focus_column()
 
     existing_urls = set()
     parsed_articles = []
@@ -978,6 +1008,9 @@ def main():
                 **rule_tags,
                 **ai_tags,
                 "topic_tags": combined_topic_tags,
+                "primary_states": primary_states(
+                    title, rule_tags.get('states_mentioned', []),
+                    ai_tags.get('geo_focus', ''), ai_tags.get('category', ''), STATES),
                 "civic_flag": civic_flag,
                 "civic_flag_score": flag_score if civic_flag else 0,
                 "civic_flag_category": civic_flag_category,
@@ -1023,6 +1056,9 @@ def main():
                         classified_timestamp,
                         article_id
                     ))
+                    if HAS_GEO_FOCUS:
+                        cursor.execute("UPDATE articles SET geo_focus = ? WHERE id = ?",
+                                       (enriched_article.get('geo_focus', '') or None, article_id))
                     
                     insert_article_entities(cursor, article_id, enriched_article)
                     conn.commit()
@@ -1046,7 +1082,7 @@ def main():
             logging.info(f"Saved [{processed_count}]: {title}")
             logging.info(f"  Category: {ai_tags['category']} | Sentiment: {ai_tags['sentiment']} | Target: {ai_tags['sentiment_target']}")
             logging.info(f"  Parties: {rule_tags['party_mentioned']} | Ministers: {rule_tags['ministers_mentioned']}")
-            logging.info(f"  States: {rule_tags['states_mentioned']} | Topics: {combined_topic_tags}")
+            logging.info(f"  States mentioned: {rule_tags['states_mentioned']} | State pages: {enriched_article['primary_states']} | Topics: {combined_topic_tags}")
             logging.info(f"  Beneficiary: {ai_tags['beneficiary_group']} | Geo Focus: {ai_tags['geo_focus']}")
             if civic_flag:
                 logging.info(f"  ⚑ FLAGGED [{civic_flag_category}]: {civic_flag_reason}")
