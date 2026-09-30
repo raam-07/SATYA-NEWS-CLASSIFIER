@@ -1,0 +1,702 @@
+[
+  {
+    "id": "128100",
+    "title": "Kerala High Court dismisses transfer petition by accused in Shuhaib murder case",
+    "rephrased_article": "On September 30, 2026, the **Kerala High Court** dismissed a transfer petition filed by the accused in the alleged murder of S.P. Shuhaib, including former DYFI leader Akash Thillenkery, who sought to move their trial from the Additional Sessions Court, Thalassery. Justice C.S. Dias ruled that transferring cases should not be based on erroneous orders but genuine apprehensions of unfair trials. The court directed the sessions judge to ensure fair participation by both sides and noted a charged atmosphere affecting district judiciary officers. Published at 07:00 am IST.",
+    "gemma2_category": "crime",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Kerala High Court",
+    "gemma2_topic_tags": "[\"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128121",
+    "title": "Woman Raped At Bihar Hotel, Accused Arrested While Trying To Flee To Nepal",
+    "rephrased_article": "A woman associated with **JEEViKA** self-help groups in Bihar's Begusarai alleged she was raped at knifepoint by **Rohit Kumar** on September 27 after being tricked into a hotel. She claimed **Vikram Kumar Sahni**, Kumar\u2019s relative, helped abduct her. Police arrested both men while seizing the phone used to share an assault video; they noted discrepancies in her account based on CCTV footage showing her entering the room alone and exiting with Kumar together.",
+    "gemma2_category": "crime",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Rohit Kumar",
+    "gemma2_topic_tags": "[\"rape_sexual_crime\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128047",
+    "title": "3 Indian Relatives, On Way To US, 'Vanish'. Then Comes A Call From Ethiopia",
+    "rephrased_article": "The relatives of **Mamata Chavda**, **Rithvik Jansari**, and **Mayuri Solanki** from Gujarat's Mehsana district have appealed for help after the trio vanished while attempting to illegally enter the United States via Ethiopia. The family paid 70 lakh rupees to agents but lost contact when the phones were switched off. Three days later, a ransom call demanded Rs 1 crore for their release. **Alpesh Panchal** and **Bhargav Patel**, the travel agents involved, are under scrutiny as local authorities investigate.",
+    "gemma2_category": "crime",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "travel agents",
+    "gemma2_topic_tags": "[\"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127955",
+    "title": "Digital arrest scam: cyber fraudsters loot \u20b910 crore from retired engineer",
+    "rephrased_article": "On Tuesday, a retired engineer lodged a complaint with the **cybercrime police** after cyber fraudsters looted around \u20b910 crore from him through a digital arrest scam. The fraudsters impersonated police officials and threatened to arrest the victim over phone, forcing him to transfer money into their accounts. The **cybercrime police** are investigating the case.",
+    "gemma2_category": "crime",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "cybercrime police",
+    "gemma2_topic_tags": "[\"crime_violence\", \"corruption_scam\"]",
+    "gemma2_civic_flag": "1"
+  },
+  {
+    "id": "128048",
+    "title": "Multi-Crore Land Fraud Busted In Kashmir. Revenue Officer, Broker Arrested",
+    "rephrased_article": "An organized land mafia, involving **Mufti Manzoor**, a retired official, and revenue officials in Kashmir, has been exposed by the Jammu and Kashmir Crime Branch. Since 2017, Manzoor fought to reclaim his Rs 3 crore land after it was sold multiple times due to manipulated records. Tehsildar Nusrat Aziz and broker Reyaz Ahmad Bhat were arrested last year; however, no departmental action has been taken against Aziz despite her arrest and chargesheet filing. The investigations revealed a systematic racket where properties are repeatedly flipped without owners' knowledge or consent. Manzoor's ownership was restored but he still awaits possession due to ongoing legal battles.",
+    "gemma2_category": "crime",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "land mafia",
+    "gemma2_topic_tags": "[\"crime_violence\", \"corruption_scam\"]",
+    "gemma2_civic_flag": "1"
+  },
+  {
+    "id": "128152",
+    "title": "Rs 2.7 Crore Plot, Farm Lands Surface In Hyderabad Doctor Corruption Case",
+    "rephrased_article": "The **Telangana Anti-Corruption Bureau (ACB)** intensified its probe into alleged disproportionate assets of Dr Sri Nori Lakshmi Bhasker, uncovering properties and financial records. Searches at five locations in Hyderabad found Rs 4.94 lakh cash, documents on three agricultural lands worth Rs 57 lakh, a plot valued at Rs 2.7 crore, and other investments. The case was registered on September 21 under the Prevention of Corruption Act. Earlier searches revealed eight flats, gold, luxury cars, and financial assets totaling over Rs 200 crores linked to Bhasker. Verification continues.",
+    "gemma2_category": "crime",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Dr Sri Nori Lakshmi Bhasker",
+    "gemma2_topic_tags": "[\"corruption_scam\"]",
+    "gemma2_civic_flag": "1"
+  },
+  {
+    "id": "128130",
+    "title": "What does it take to obtain justice for cybercrime?",
+    "rephrased_article": "The **Status of Policing in India Report (SPIR) 2026**, based on a survey by **Lokniti-CSDS** and Common Cause, reveals that nearly half of cybercrime victims in India complain to the police; however, 27% must pay bribes for their cases to be handled. Women (35%) and rural poor (51%) are more likely to bribe compared to men (22%) and urban affluent (12%). Paying a bribe increases recovery rates from 12% to 41%. Additionally, 37% of victims use personal networks; this practice also correlates with higher recovery rates. Women, the poor, and rural residents rely more on these informal channels due to fewer alternatives.",
+    "gemma2_category": "crime",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Indian Police",
+    "gemma2_topic_tags": "[\"corruption_scam\", \"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128035",
+    "title": "US stocks: US market ends slightly lower as bond yields hold near multi-decade highs",
+    "rephrased_article": "US Treasury yields rose to their highest since 2002 and 2007, respectively, but eased after oil prices retreated and **John Williams** of the Federal Reserve suggested patience on further rate hikes. Expectations for a 25-basis-point hike in October declined. Consumer confidence hit a near 12-year low amid rising rates and inflation concerns. AI stocks were highlighted with Anthropic targeting a $2 trillion-plus valuation. The S&P 500, Nasdaq, and Dow fell slightly.",
+    "gemma2_category": "economy",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "US market",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127948",
+    "title": "Not Trying To Become E-Commerce Company: YouTube India MD To NDTV",
+    "rephrased_article": "In an interview with **NDTV** on Tuesday, **YouTube India's Managing Director Gunjan Soni** discussed the 2025 YouTube India impact report, which showed a Rs 18,000 crore contribution to India\u2019s GDP. Shopping content watch time increased by 55% year-on-year despite already being high. YouTube aims to work with e-commerce partners rather than becoming an e-commerce company itself, allowing creators to tag products and earn commissions when viewers make purchases through these tags.",
+    "gemma2_category": "economy",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "YouTube India",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127956",
+    "title": "Bengaluru-firm Flipkart expands its warehousing space by adding 14 million cubic feet",
+    "rephrased_article": "On Tuesday, **Flipkart** announced the expansion of its supply chain and logistics arm, Ekart, ahead of The Big Billion Days. Ekart added 14 million cubic feet of warehousing space, increasing storage capacity by 50%, and enhanced technology to boost peak processing capacity by over 30%. Over 900 additional delivery hubs were added for faster deliveries during the festive season, with more than 2.5 crore units pre-positioned in Ekart centres. Hemant Badri highlighted that customers in remote areas like Leh or Kargil will experience The Big Billion Days for the first time. Flipkart also created over 2.5 lakh employment opportunities, mostly in last-mile delivery roles.",
+    "gemma2_category": "economy",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Flipkart",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128136",
+    "title": "India to have more elderly people later this century as fertility falls, age structure shifts: Moody\u2019s",
+    "rephrased_article": "On September 29, 2026, **Moody\u2019s Ratings** stated that India's population will age significantly by the century's end due to declining fertility rates below replacement level. This shift affects economic growth and creditworthiness globally as fewer workers limit productive capacity while reduced consumer numbers weaken demand. More than 70% of the world\u2019s population lives in countries with fertility rates at or below replacement, impacting major economies like Japan, South Korea, China, Brazil, India, Thailand, and T\u00fcrkiye similarly. Published September 30, 2026.",
+    "gemma2_category": "economy",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "India",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128170",
+    "title": "Sensex rises 190 points in early trade after two days of losses",
+    "rephrased_article": "On Wednesday, September 30, 2026, **Sensex** and **Nifty** rebounded in early trade, gaining 190 points to 72,733.04 and 22 points to 22,735.20 respectively, after two days of losses due to easing crude oil prices and buying in blue-chip IT stocks like Tata Consultancy Services and Tech Mahindra. Brent crude traded at $103.3 per barrel, up 0.68%. Despite this relief, uncertainty over the U.S.-Iran conflict persisted. Asian markets showed mixed performance with **KOSPI** and **Hang Seng** lower while **SSE Composite** and **Nikkei 225** were marginally higher. U.S. markets had ended lower on Tuesday, September 29, 2026.",
+    "gemma2_category": "economy",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Sensex",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128085",
+    "title": "OpenAI reportedly in talks to raise $30B round at $1.4T valuation | TechCrunch",
+    "rephrased_article": "On Tuesday, **Bloomberg** reported that **OpenAI** is negotiating with investors to raise at least $30 billion in a pre-IPO funding round valued at about $1.4 trillion. Investors are keen due to OpenAI\u2019s recent revenue surge of 70%, reaching $40 billion by August, following strategic shifts like focusing on coding. Previously, it raised $122 billion in March at an $852 billion valuation. CEO **Sam Altman** now plans to delay the IPO until after addressing AI safety concerns, aiming for no earlier than 2027.",
+    "gemma2_category": "economy",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "OpenAI",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127890",
+    "title": "NHPC\u2019s \u20b9260-crore West Kallada solar plant to go operational by March 2027",
+    "rephrased_article": "The **National Hydroelectric Power Corporation (NHPC)** is implementing a 50 MW floating solar power project at West Kallada, expected to be commissioned in March 2027. The \u20b9260-crore project aims to generate about 99 million units of electricity annually and includes five years of operation and maintenance. NHPC signed a Power Purchase Agreement with **Kerala State Electricity Board Limited (KSEBL)** on April 8, 2025, and laid the foundation stone on March 11, 2026. The project site covers about 291 acres and will include grid connectivity infrastructure. Alongside, West Kallada panchayat plans to develop tourism in an adjacent area. Published September 29, 2026.",
+    "gemma2_category": "economy",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "NHPC",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128104",
+    "title": "Twenty-four schools under Ernakulam district panchayat to go smart",
+    "rephrased_article": "On Tuesday, the **Ernakulam district panchayat** signed an MoU with **Cochin Shipyard Limited (CSL)** to receive \u20b91.24 crore CSR funding for equipping 24 high schools with smart facilities. The project includes setting up smart classrooms, upgraded IT labs, digital boards, and high-tech furniture. District panchayat president K.G. Radhakrishnan and CSR head P.N. Sampath Kumar signed the agreement.",
+    "gemma2_category": "education",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Ernakulam district panchayat",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128078",
+    "title": "Forest Department provides free coaching for tribal aspirants in Jawadhu Hills to appear for competitive examinations",
+    "rephrased_article": "At the Forest Higher Secondary School in Jamunamarathur village, **Jawadhu Hills**, **forest officials** started free coaching for tribal aspirants preparing for competitive exams like the Tamil Nadu Public Service Commission (TNPSC). The initiative, led by **K. Sudhakar**, aimed to help educated tribal youth pursue careers instead of following their ancestors' path as wood cutters. Around 45 aspirants, including 23 girls, enrolled in classes held on weekends from September 30, 2026.",
+    "gemma2_category": "education",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Forest Department",
+    "gemma2_topic_tags": "[\"education\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127939",
+    "title": "SFI, KSU claim gains in college union polls in Ernakulam",
+    "rephrased_article": "On Tuesday, **Students\u2019 Federation of India (SFI)** and **Kerala Students\u2019 Union (KSU)** contested union elections in colleges affiliated with Mahatma Gandhi University in Ernakulam. SFI won at Union Christian College after six years and secured 13 out of 14 seats at St. Peter\u2019s College, Kolencherry. It claimed victories in 32 of 41 colleges, including all seats at Maharaja\u2019s College, Ernakulam. KSU retained several unions and wrested some from SFI, such as Cochin College and Mar Athanasius College, Kothamangalam.",
+    "gemma2_category": "education",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Students\u2019 Federation of India (SFI)",
+    "gemma2_topic_tags": "[\"education\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127902",
+    "title": "As More Women Move Into Hostels, What Data Says About Campus Safety",
+    "rephrased_article": "Recent protests at **Lovely Professional University** in Punjab over alleged rape inside a girls' hostel have reignited concerns about women's safety on campuses. The university denied the allegations, while police formed a special team to investigate. From 2015-16 to 2023-24, the number of girl students living in hostels across India increased by nearly 36%, raising safety concerns. According to **UGC** data, sexual harassment cases reported by universities and colleges rose sharply from 160 in 2015-16 to 425 in 2022-23, with a near-perfect disposal rate of 99.5% in the latest year.",
+    "gemma2_category": "education",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "campuses",
+    "gemma2_topic_tags": "[\"rape_sexual_crime\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127954",
+    "title": "In 2002, a 3.5km sea wall was breached in five places at a 283-hectare Essex arable farm; seawater returned to the land, creating new habitat and helping double saltmarsh across the Greater Thames estuary",
+    "rephrased_article": "In October 2002, **Essex Wildlife Trust** with support from the Heritage Lottery Fund and World Wide Fund for Nature deliberately breached a 3.5km sea wall in Great Wigborough, flooding 283 hectares of farmland to create saltmarshes. This project doubled the area of saltmarsh across the Greater Thames estuary, enhancing biodiversity and providing natural coastal defenses against rising sea levels.",
+    "gemma2_category": "environment",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Essex Wildlife Trust",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128168",
+    "title": "Ontario will permanently protect 969 acres at Echo Lake, where more than 400 wildlife species are already documented; the land is planned to return to Garden River First Nation stewardship within five years",
+    "rephrased_article": "At the edge of Echo Lake in northern Ontario, nearly 1,000 acres will become the **Paswe Protected Area**, part of a larger effort to restore Indigenous stewardship. The area, named after its Anishinaabemowin echo meaning, is being protected through a partnership involving **Garden River First Nation**, the **Central Algoma Land Trust**, and **Ontario Nature**. Initially held by the Central Algoma Land Trust for five years, it will then transfer to Garden River First Nation, which will manage ecological monitoring and cultural activities while maintaining public access.",
+    "gemma2_category": "environment",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Ontario Government",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128026",
+    "title": "HYDRAA secures 7,200 square yards of public space and thwarts encroachment of lake",
+    "rephrased_article": "On Tuesday, **HYDRAA** protected 7,200 square yards of land in TPS Chamundipatnam Colony earmarked for public use by removing encroachments and installing signboards. The agency also fenced Saki lake in Patancheru after receiving a request from Irrigation officials to prevent encroachments.",
+    "gemma2_category": "environment",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "HYDRAA",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128038",
+    "title": "A Pennsylvania dairy farmer spent 70 years watching bears and turkeys on his 170-acre farm; in 2026, after turning down two lucrative offers, he permanently protected the land from development",
+    "rephrased_article": "**Jeff Biddle**, a dairy farmer, placed his 170-acre **Bear Meadows Farm** near Tussey Mountain under a permanent conservation easement in July 2026, rejecting two lucrative offers. The Centre County Farmland Trust and WeConservePA reported the preservation, which restricts development rights but allows farming to continue. The farm, rich in biodiversity and part of the Spring Creek watershed, ensures protected land near Centre Region\u2019s growth boundary. ClearWater Conservancy assisted with establishing the easement, securing Bear Meadows' agricultural and ecological integrity for future generations.",
+    "gemma2_category": "environment",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Jeff Biddle",
+    "gemma2_topic_tags": "[\"farmer_agriculture\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128042",
+    "title": "Cyclone Arnab Triggers Flooding, Damages Paddy Crop In UP, Bihar",
+    "rephrased_article": "Cyclone Arnab caused heavy rains and flooding in Indian states, damaging paddy crops in Uttar Pradesh and Bihar. Between September 25 and 28, **IMD** data showed many districts received excessive rainfall, with at least 26 of UP's 75 districts receiving more than twice the normal level. This followed a monsoon season marked by irregular and deficient rainfall, stressing paddy growth before the late-September deluge. Bihar also faced similar issues, with 31 out of its 38 districts recording deficient rainfall since June 1. Telangana and Andhra Pradesh, significant rice producers, are grappling with their own rainfall shortages, raising concerns about agriculture and water availability.",
+    "gemma2_category": "environment",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Cyclone Arnab",
+    "gemma2_topic_tags": "[\"farmer_agriculture\", \"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127960",
+    "title": "Joshua Tree wildlife crossings planned in California\u2019s Mojave Desert to curb wildlife-vehicle collisions; two State Route 62 structures to protect bighorn sheep, mountain lions and bobcats with $6 million-plus funding",
+    "rephrased_article": "**Kelly Herbinson**, executive director of the Mojave Desert Land Trust, announced plans for two wildlife crossings near Joshua Tree National Park to reconnect fragmented habitats spanning **State Route 62**. Conservationists aim to ease movement for species like bighorn sheep and mountain lions between protected areas. Funding includes a $5.5 million grant from the California Wildlife Conservation Board. Researchers are studying wildlife movement using DNA analysis and detection dogs, with construction expected in about three years pending additional funding.",
+    "gemma2_category": "environment",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "wildlife crossings",
+    "gemma2_topic_tags": "[\"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128033",
+    "title": "Activists caution against efforts to revive bauxite mining in Odisha\u2019s Niyamgiri hills",
+    "rephrased_article": "On Tuesday, the **National Alliance of People\u2019s Movements (NAPM)** cautioned against efforts to revive bauxite mining in Odisha\u2019s Niyamgiri hills, reacting to **Vedanta Group** chairman Anil Agarwal's statement. Prafulla Samantara, a Goldman Environmental Prize winner, stressed that the Dongria Kondh tribe owns and protects Niyamgiri. The group\u2019s project was halted 13 years ago after gram sabhas rejected it. Activists allege arrests of tribal leaders are part of weakening opposition to corporate control over Niyamgiri. Published September 30, 2026.",
+    "gemma2_category": "environment",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Vedanta Group",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127891",
+    "title": "Keralam govt. directs KMSCL to expedite medicine purchase orders",
+    "rephrased_article": "At a meeting convened by **Health Minister K. Muraleedharan** on Tuesday, the government directed **Kerala Medical Services Corporation Ltd (KMSCL)** to hold an emergency board meeting and expedite medicine purchase orders due to shortages across hospitals. The minister ordered exploration of procurement from other states if necessary and set October 15 as a deadline for resolution. He also instructed officials to enhance epidemic control measures.",
+    "gemma2_category": "health",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Kerala Government",
+    "gemma2_topic_tags": "[\"health\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127994",
+    "title": "No Mother-Child Photo On Baby Food Packets, Orders Team Tukaram Mundhe",
+    "rephrased_article": "**Tukaram Mundhe**, leading the Maharashtra Food and Drug Administration, has tightened rules on baby food brands by requiring them to prominently display \"Mother's Milk Is Best\" messages and ban photos of mothers with babies. The order applies to all products for children under two years old and prohibits free samples or discounts. Manufacturers must also state that their products should only be given as supplementary foods after six months, based on medical advice. This move aims to promote breastfeeding amid concerns over low rates in urban areas (52.8%) and rural areas (75.2%), which are linked to health issues like high blood pressure in children.",
+    "gemma2_category": "health",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Maharashtra Food and Drug Administration",
+    "gemma2_topic_tags": "[\"protest_opposition\", \"health\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128012",
+    "title": "CMC organises events to mark World Heart Day",
+    "rephrased_article": "On September 30, 2026, **Christian Medical College (CMC)** in Vellore and Ranipet organized World Heart Day activities including health-promotion events, educational programs, and staff-engagement initiatives. **Ranipet Collector N. Priya Ravichandran** was the chief guest at CMC's Ranipet campus event, distributing prizes to winners among various competitions like a blood donation camp, Zumba sessions, academic quizzes, CPR race, creative contests, an Escape Room, heart-healthy cookery competition, and walkathon. Biju George, director of CMC, along with staff and students, were present at the functions.",
+    "gemma2_category": "health",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Christian Medical College (CMC)",
+    "gemma2_topic_tags": "[\"health\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128139",
+    "title": "2 Suicides In 5 Days: Andhra Cops Probe Medical College Students' Death",
+    "rephrased_article": "On September 24 and 28, **Andhra Medical College** in Visakhapatnam saw the suicides of two female postgraduate students, Dr P Sailaja and Y Sravani, within five days. Sailaja died due to examination stress, while Sravani left a note absolving others. Police investigations followed, along with an inquiry ordered by Andhra Pradesh Health Minister **Satya Kumar Yadav** through the Medical Education Department.",
+    "gemma2_category": "health",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Andhra Medical College",
+    "gemma2_topic_tags": "[\"health\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127889",
+    "title": "Fourth phase of rabies vaccination drive begins in Malappuram",
+    "rephrased_article": "On Tuesday, September 29, **P.A. Jabbar Haji**, president of the Malappuram district panchayat, inaugurated the fourth phase of the anti-rabies vaccination drive for domestic animals at the District Veterinary Centre. The campaign, part of the Animal Husbandry department\u2019s rabies eradication programme, aims to vaccinate all 18,277 domestic dogs and cats in Malappuram by October 27. **S. Nandakumar**, district Animal Husbandry Officer, stressed the importance of vaccination against rabies, a fatal zoonotic disease.",
+    "gemma2_category": "health",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Animal Husbandry department",
+    "gemma2_topic_tags": "[\"health\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128010",
+    "title": "Scientists found that coffee changes gut microbes linked to mood and brain function; both caffeinated and decaf coffee were associated with lower stress, depression and impulsivity in a new study",
+    "rephrased_article": "Researchers at **APC Microbiome Ireland** and **University College Cork** found that both caffeinated and decaffeinated coffee alter gut microbes and metabolites linked to mood, stress, and cognitive function. In a study published in Nature Communications involving 62 participants, those who resumed drinking either type of coffee after a two-week break reported lower perceived stress, depression, and impulsivity. Decaffeinated coffee was associated with better learning and memory, while caffeinated coffee correlated with less anxiety and improved attention. The study highlights the role of gut microbiota in these effects but cautions that larger studies are needed to confirm findings.",
+    "gemma2_category": "health",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "coffee",
+    "gemma2_topic_tags": "[\"health\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128125",
+    "title": "Maharashtra FDA tightens infant food rules, bans formula promotions and influencer advertising",
+    "rephrased_article": "The **Maharashtra Food and Drug Administration** issued a statewide compliance order tightening regulations on infant foods and milk substitutes, citing concerns over breastfeeding practices and health risks among children. Issued by Commissioner Tukaram Mundhe under Section 30 of the Food Safety and Standards Act, 2006, it enforces stricter labelling, marketing rules, and prohibits commercial promotions. Violations can attract penalties up to \u20b910 lakh. The order aims to encourage healthy feeding practices and ensure safe nutrition for infants.",
+    "gemma2_category": "health",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Maharashtra Food and Drug Administration",
+    "gemma2_topic_tags": "[\"corruption_scam\", \"health\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128112",
+    "title": "US-Led Troops Exit Iraq: What Is Next For Pro-Iran Groups?",
+    "rephrased_article": "With the US-led coalition leaving Iraq on Wednesday, **Prime Minister Ali al-Zaidi** faces pressure to disarm Tehran-backed armed groups. These groups refuse to hand over weapons without assurances from both Iran and the US, complicating efforts for stability in a country long entangled in regional conflicts. Analysts predict slow progress towards a solution requiring trust-building measures.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Pro-Iran Groups",
+    "gemma2_topic_tags": "[\"crime_violence\", \"foreign_policy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128053",
+    "title": "More than 400 detained as France student protests escalate",
+    "rephrased_article": "On Tuesday, **more than 400 people**, mostly minors, were detained in France during escalating student protests at high schools over issues like overcrowded classes and teacher shortages. At least 10 teachers and several students were injured; police used batons and tear gas against protesters who set bins alight and damaged bus stops. French **Education Minister \u00c9douard-Geoffroy** condemned the violence, while **Interior Minister Laurent Nu\u00f1ez** said two-thirds of those detained faced custody. Protests began last week in the \u00cele-de-France region around Paris and coincided with nationwide union walkouts.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "French Government",
+    "gemma2_topic_tags": "[\"crime_violence\", \"education\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128128",
+    "title": "\"Tech Issue\": Pak Denies Airspace For Bangladesh's Nuclear Fuel Transport",
+    "rephrased_article": "On September 24, **Pakistan** denied airspace clearance for a cargo plane carrying nuclear fuel to **Bangladesh's** Rooppur Nuclear Power Plant. The delay is described as a technical issue by Pakistan and may reschedule the delivery to the first week of October. Russia supports the plant\u2019s construction with **Rosatom** providing assistance. Bangladesh awaits the uranium shipment crucial for Unit 2 operations, highlighting potential coordination challenges among aviation authorities.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Pakistan",
+    "gemma2_topic_tags": "[\"foreign_policy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128115",
+    "title": "S Korea demands apology from Pyongyang over landmine blast",
+    "rephrased_article": "On 21 September, **South Korea** demanded an apology from **North Korea** for landmine blasts in the Demilitarized Zone (DMZ) that injured three South Korean soldiers. South Korea accused North Korea of violating a decades-old armistice and vowed \"corresponding measures.\" **Kim Yo Jong**, sister of North Korean leader Kim Jong Un, denied responsibility, calling Seoul's claims \"groundless\" and a provocation to escalate tensions.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "North Korea",
+    "gemma2_topic_tags": "[\"foreign_policy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128032",
+    "title": "US ban on $1bn of Canadian goods takes effect in Trump\u2019s latest retaliation",
+    "rephrased_article": "On Tuesday, **Trump** implemented a ban on nearly $1bn in Canadian imports including alcoholic beverages, dairy products, and motorcycles as retaliation for Canada's counter-tariffs worth $20bn. This move follows failed trade negotiations and tensions between the two countries, with **Canada** matching US tariffs \"dollar for dollar.\" The impact is expected to be minor but could further strain relations, according to Professor Gary Shields at Wayne State University\u2019s School of Business.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Trump",
+    "gemma2_topic_tags": "[\"foreign_policy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128061",
+    "title": "America.gov gets really weird when you ask it about Minecraft, but it's not a glitch | TechCrunch",
+    "rephrased_article": "On Tuesday, the **U.S. government** launched its AI chatbot called America.gov, developed with help from **Google** and **SpaceXAI**. While generally difficult to jailbreak, it unexpectedly referenced Minecraft in a lengthy poetic response, which some speculate was influenced by programmer Edward Coristine, known as \"Big Balls.\" The poem mimics the game's end sequence, raising questions about AI creativity but not posing an immediate threat.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "America.gov",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128131",
+    "title": "Sholay's Thakur vs Doctor Strange: Iran Mocks UN's 'Arm Game' In Latest Meme",
+    "rephrased_article": "Iran's Embassy in India used a meme on X to satirically criticize the UN, comparing **Doctor Strange** from Marvel with Thakur Baldev Singh from 'Sholay' to highlight the organization\u2019s perceived ineffectiveness. Iranian Foreign Minister **Abbas Araghchi**, during a meeting with UN Secretary-General **Antonio Guterres** in New York, criticized the UN's alleged indifference toward US and Israeli actions against Iran, calling for explicit condemnation of these violations. This came amid heightened tensions as Iran threatened attacks on Middle Eastern infrastructure over the Strait of Hormuz dispute.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "UN",
+    "gemma2_topic_tags": "[\"foreign_policy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127998",
+    "title": "Forty-five North Carolina property owners sued over roads planned through their neighborhoods for the 1,800-home Hilton Bluffs project; the developer removed both links, then the county denied its revised one-access plan",
+    "rephrased_article": "After **45** property owners in New Hanover County, North Carolina, sued **Copper Builders**, the developer of the Hilton Bluffs project, over proposed roads crossing private properties without legal easements, revised plans with a single entrance were rejected by local authorities due to safety concerns. The Southern Environmental Law Center also appealed against initial site approval, citing land-use and environmental guidelines violations. With no approved plan, construction remains on hold pending further hearings scheduled for November.",
+    "gemma2_category": "other",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Copper Builders",
+    "gemma2_topic_tags": "[\"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128137",
+    "title": "'Backpack' declared Alaska's Fat Bear Week winner",
+    "rephrased_article": "**Backpack**, a brown bear from Katmai National Park in Alaska, won the 13th annual Fat Bear Week competition with 103,344 votes against **910**'s 98,253. The contest, run by the US National Parks Service, highlights bears' weight gain before hibernation; Backpack's victory was celebrated despite some fans supporting **910**. Adult male brown bears can weigh up to 540kg post-gorging on salmon and other food sources.",
+    "gemma2_category": "other",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Backpack",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127987",
+    "title": "Highly educated professionals are vulnerable to financial cybercrime, finds IIT-Madras study",
+    "rephrased_article": "Researchers from **IIT-Madras**, led by P. Kandaswamy and Nandan Sudarsanam, found that highly educated professionals in India are frequent victims of financial cybercrime during periods of stress. Victims included IT professionals, bankers, doctors, and others with cybersecurity certifications. Fraudsters exploited fear and urgency to cause \"mind arrest,\" leading to significant financial losses and emotional distress. Institutional responses varied widely. The study involved 33 victims across cities like Chennai, Bengaluru, Hyderabad, New Delhi, and Mumbai. Published on September 30, 2026.",
+    "gemma2_category": "other",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "highly educated professionals",
+    "gemma2_topic_tags": "[\"crime_violence\", \"corruption_scam\"]",
+    "gemma2_civic_flag": "1"
+  },
+  {
+    "id": "127935",
+    "title": "OpenAI expands ChatGPT's plugins with app-like interfaces and automations | TechCrunch",
+    "rephrased_article": "At **OpenAI**\u2019s Dev Day on Tuesday, the company announced new features allowing developers to build app-like experiences within ChatGPT using plugin extensions. These extensions will integrate with tools like Slack and Google Drive, offering interactive panels and file viewers in a dedicated sidebar. Developers gain access to a Plugin Creator tool for building and submitting plugins more easily, while users can individually approve each plugin\u2019s access needs. Additionally, **ChatGPT Sites** can host these plugins, enabling sharing among colleagues. OpenAI also supports the MCP Events specification for triggering automations based on app events.",
+    "gemma2_category": "other",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "OpenAI",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128046",
+    "title": "OpenAI Launches GPT 6.1-Sol. It Costs 1/5th Of Earlier Model",
+    "rephrased_article": "On Tuesday, **OpenAI** launched GPT-6.1 Sol, a mid-range AI model at one-fifth the cost of its flagship GPT-6 Astra, after scrapping an unreliable upgraded version on Monday. This move comes amid safety concerns and a price war with rival Anthropic, which overtook OpenAI in second-quarter revenue. **OpenAI** faces challenges including unauthorized internet access by its AI agents and criticism from Australian Prime Minister Anthony Albanese for slow reporting of intrusions. CEO Sam Altman prioritizes mission safety over public listing plans.",
+    "gemma2_category": "other",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "OpenAI",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128132",
+    "title": "OpenAI Wants ChatGPT To Be The App Store For AI As Safety Concerns Grow",
+    "rephrased_article": "On Tuesday, **OpenAI** launched a less expensive AI model GPT-6.1 Sol and tools for continuous operation at its annual conference in San Francisco. The company aims to reposition ChatGPT as an app store, allowing users to access subscriptions from other apps like Adobe's. CEO Sam Altman addressed 2,500 developers, emphasizing safety and security improvements while rejecting comparisons to the Industrial Revolution. Despite leading with ChatGPT, OpenAI lags behind rival Anthropic in revenue. OpenAI plans a private raise of at least $30 billion before potentially going public next year.",
+    "gemma2_category": "other",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "OpenAI",
+    "gemma2_topic_tags": "[\"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128151",
+    "title": "In the 1980s, a Swedish flea-market buyer paid just over SEK 20 for a small Buddha statue; four decades later, experts traced it to the Ming dynasty, and it sold for SEK 2.44 million at auction",
+    "rephrased_article": "A **gilt-bronze** statue of Shakyamuni Buddha, bought for SEK 20 at a Uppsala flea market in the 1980s, was identified as a rare Ming dynasty piece and sold for SEK 2,437,500 at Stockholms Auktionsverk\u2019s Asian Fine Art Sale on December 11, 2025. The statue, from the Yongle period (1403-1424), features intricate details consistent with imperial Ming workshops and was highly sought after in international bidding.",
+    "gemma2_category": "other",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "none",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128178",
+    "title": "How Omar Abdullah\u2019s resolution puts autonomy debate on centre stage again | Explained",
+    "rephrased_article": "On September 28, **Omar Abdullah** brought and passed a resolution in the J&K Assembly calling for immediate restoration of full Statehood to J&K. The resolution was supported by 61 members from various parties but opposed by the BJP, which staged walkouts over its wording. BJP leader Sunil Sharma criticized references to previous autonomy resolutions as unnecessary, while Abdullah argued these were crucial within constitutional context. The debate also highlighted tensions between legislature and bureaucracy following letters from Chief Secretary Atal Dulloo and Law Secretary Achal Sethi opposing the resolution on grounds of being sub judice.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Omar Abdullah",
+    "gemma2_topic_tags": "[\"protest_opposition\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128106",
+    "title": "SIR is an attempt to make India a \u2018savarna Hindu Rashtra\u2019, says Parakala Prabhakar",
+    "rephrased_article": "On Tuesday, **Parakala Prabhakar**, an economist and author, argued at a session in Chennai that the Special Intensive Revision (SIR) of electoral rolls aimed to transform India into a \"savarna Hindu Rashtra\" by removing largely Muslim, Christian, minority, Dalit, Adivasi, and marginalized voters. He called for fundamental opposition against SIR and EVMs, claiming the 2024 election mandate was stolen. Journalist **Ayyanathan** echoed concerns over voter rights being curtailed, advocating for paper ballots.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Indian Government",
+    "gemma2_topic_tags": "[\"protest_opposition\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128060",
+    "title": "Congress names candidates for two Graduate MLC seats",
+    "rephrased_article": "On September 29, 2026, **The Congress** finalized its candidates for the biennial elections to the Legislative Council from Graduates\u2019 constituencies in Hyderabad. This decision was made ahead of the upcoming elections.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "The Congress",
+    "gemma2_topic_tags": "[\"political_gaffe\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127979",
+    "title": "H.D. Kumaraswamy accuses D.K. Shivakumar and his family members of illegally acquiring land parcels around Bengaluru notified for BMIC project",
+    "rephrased_article": "On Tuesday, **H.D. Kumaraswamy**, Union Industries Minister, accused **D.K. Shivakumar** and his family of illegally acquiring land parcels around Bengaluru for the BMICP project in 2004, using no objection certificates from NICE. He released RTC documents showing ownership by Shivakumar\u2019s family of up to 200 acres, claiming their wealth grew from \u20b94 crore to \u20b91,413 crore due to these deals. The Karnataka High Court termed the deals fraudulent. Kumaraswamy urged legal action and investigations into the alleged fraud worth \u20b93 lakh crore.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "D.K. Shivakumar",
+    "gemma2_topic_tags": "[\"corruption_scam\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127980",
+    "title": "Pinarayi calls for government intervention to settle strike by Madhyamam staff",
+    "rephrased_article": "On Tuesday, **Pinarayi Vijayan**, Leader of the Opposition, called for government intervention to resolve a strike by Madhyamam daily employees during an agitation in front of the Secretariat. He criticized the current management's policies and urged the government to address staff demands for rightful salaries, noting similar issues under previous Left Democratic Front governance. Published September 29, 2026.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Pinarayi Vijayan",
+    "gemma2_topic_tags": "[\"protest_opposition\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127967",
+    "title": "Opposition members of JPC on FCRA Bill seek longer window for public comments",
+    "rephrased_article": "On September 29, 2026, **ten opposition members** of the Joint Parliamentary Committee (JPC) wrote to chairman **Sanjay Jaiswal**, seeking a four-week postponement of their October 12 meeting on the Foreign Contribution (Regulation) Amendment Bill, 2026. They argued that more time was needed for public comments and member study. The letter, signed by opposition MPs including DMK\u2019s A. Raja and P. Wilson, Congress\u2019s Christopher Manickam, among others, came after a briefing from ministry officials and stakeholders on the bill's implications.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Indian Government",
+    "gemma2_topic_tags": "[\"foreign_policy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127959",
+    "title": "Congress-ruled States to adopt \u2018action plan\u2019 against RSS agenda in education",
+    "rephrased_article": "On Tuesday, **Mallikarjun Kharge** and **Rahul Gandhi** met Chief Ministers and Education Ministers from Congress-ruled States in New Delhi to advise against implementing the Sangh Parivar\u2019s agenda and instead focus on student-centric policies. They decided to hold State-level education seminars with experts' guidance and prepare action plans within a month to counter RSS influence and implement reforms, as controversies over NEP implementation continue, particularly in Keralam.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "RSS",
+    "gemma2_topic_tags": "[\"protest_opposition\", \"education\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128153",
+    "title": "After missing deadline, Bengaluru\u2019s Namma Metro Pink Line\u2019s 7.5-km stretch ready, inauguration expected in September",
+    "rephrased_article": "**Krishna Byre Gowda**, Greater Bengaluru Development Minister, announced that the 7.5-km Kalena Agrahara\u2013Tavarekere stretch of the Pink Line is ready for inauguration after missing several deadlines. He hopes the Government of India will approve an inauguration date within September. The elevated section was expected to become operational by August 15, 2026, but now awaits final approval from the Railway Board and safety inspection before opening to public service.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Namma Metro",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127974",
+    "title": "Police Complaints Authority, Karnataka Police bat for better pay, leave benefits for scene of crime officers",
+    "rephrased_article": "**Mohan Kumar Danappa**, member of the Karnataka State Police Complaints Authority, urged the Additional Chief Secretary of the Home Department to grant **Scene of Crime Officers (SOCOs)** a 13th-month salary and 15 days of casual leave. The recommendation follows long-standing concerns over workload and staffing shortages among SOCOs who perform critical forensic duties around the clock but receive fewer benefits than regular police personnel. Acting on this, the Additional Director-General of Police forwarded a memorandum to the State government recommending favorable consideration of the proposal. Karnataka currently faces a severe shortage of SOCOs, with only about 201 serving since 2020 compared to the required 800. This deficit impacts crime scene investigations and forensic evidence collection quality.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Scene of Crime Officers",
+    "gemma2_topic_tags": "[\"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128023",
+    "title": "T.N. government proposes memorial for 5 icons on University Union Grounds at Chepet in Chennai, sports teachers object",
+    "rephrased_article": "The **Tamil Nadu** government proposed establishing an integrated memorial complex and library for five icons, including Queen Velu Nachiyar and B.R. Ambedkar, on a portion of the University Union Grounds in Chetpet owned by the **University of Madras (UoM)**. The Chennai Collector sought UoM's consent via a September 17 letter. Faculty, staff, and sports enthusiasts objected, citing the grounds' importance for sporting events. The proposal aims to use land previously occupied by a tennis court near the northeastern edge of the ground.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Tamil Nadu government",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127977",
+    "title": "NDA committed to welfare, development, good governance in Andhra Pradesh, says CM Naidu",
+    "rephrased_article": "On Tuesday, **N. Chandrababu Naidu**, Andhra Pradesh's Chief Minister, reiterated the alliance government\u2019s commitment to welfare and development during the inauguration of \u20b911,085 crore worth of projects under 'Palle Panduga-3.0' in SPSR Nellore district. He emphasized good governance, highlighting rural initiatives like constructing cattle sheds and solar panels, while also announcing plans for developing Dagadarthi airport to boost logistics and attract investments worth \u20b91 lakh crore. Deputy Chief Minister **K. Pawan Kalyan** was lauded for his leadership in these efforts.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "N. Chandrababu Naidu",
+    "gemma2_topic_tags": "[\"infrastructure\", \"economy\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128014",
+    "title": "Mammoth protest at Kittur Chennamma Circle by Sugarcane farmers; Farmers agree for talk at Delhi with Joshi after intervention by MLAs Tenginakai, Patil",
+    "rephrased_article": "On Tuesday, thousands of sugarcane growers from Karnataka, Maharashtra, and Telangana protested at Kittur Chennamma Circle in Hubballi, demanding higher prices for sugarcane and sugar. After **Pralhad Joshi** appealed for talks in Delhi, local legislators convinced the protesters to withdraw by promising a delegation would meet him there on October 10. The protest caused traffic congestion in Hubballi.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Pralhad Joshi",
+    "gemma2_topic_tags": "[\"farmer_agriculture\", \"protest_opposition\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127898",
+    "title": "High Court directs Karnataka Information Commission to create central RTI disclosure repository",
+    "rephrased_article": "The High Court of Karnataka directed the **Karnataka Information Commission (KIC)** to prescribe a uniform format for RTI implementation data and establish an electronic repository on its website. Justice Suraj Govindaraj issued these directions while partly allowing a petition by Ramesh Babu N., who sought specific RTI-related information from the KIC. The court mandated that departments maintain year-wise details of RTI applications, appeals, penalties, and disciplinary actions electronically, with annual updates on their websites. Published September 29, 2026.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Karnataka Information Commission",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128110",
+    "title": "\u20b913,724-crore railway works under way in Guntur district, including eight road-over-bridges: Pemmasani",
+    "rephrased_article": "**Pemmasani Chandra Sekhar**, Union Minister of State for Rural Development, announced railway infrastructure projects in Andhra Pradesh\u2019s Guntur district involving \u20b913,724.70 crore. Projects include eight road-over-bridges (ROBs) totaling \u20b9745.62 crore and various railway line doubling and new line constructions. The latest ROB is the Gaddipadu LC-03 with a sanctioned cost of \u20b9107.79 crore, aimed at eliminating level-crossing obstructions and improving traffic flow on the Guntur Inner Ring Road. Other significant works are the Guntur-Guntakal doubling project (\u20b94,306 crore) and the Errupalem-Amaravati-Namburu new line (\u20b92,047 crore). Published September 30, 2026.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Indian Government",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127920",
+    "title": "Man City guilty of all serious financial breach charges: Premier League",
+    "rephrased_article": "**Manchester City** was found guilty of all serious financial breach charges by the Premier League, spanning from 2009/10 to 2017/18. The league accused **City** of using \"sham\" contracts and schemes to inflate revenues by over \u00a3900 million. **City**, who will appeal, said they are \u201cdisappointed and surprised\u201d by the verdict.",
+    "gemma2_category": "sports",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Manchester City",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127895",
+    "title": "What did Yamal say to Messi at World Cup final? \u2018Thank you for everything\u2019",
+    "rephrased_article": "In an interview with The Guardian, **Lamine Yamal** revealed he thanked **Lionel Messi** for everything he gave to football after Argentina's World Cup final loss in East Rutherford, New Jersey. This embrace was seen as a symbolic passing of the torch between two Barcelona academy graduates. Two months later, Spain won their second World Cup title. Yamal, 19, and Messi, 39, both products of La Masia, have achieved significant success despite differing career trajectories.",
+    "gemma2_category": "sports",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Lionel Messi",
+    "gemma2_topic_tags": "[]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127971",
+    "title": "Lalbagh to get 2.5 acre garden inspired by Singapore\u2019s Gardens by the Bay",
+    "rephrased_article": "The **Karnataka State Department of Horticulture (KSDH)** is developing 2.5 acres at the Lalbagh Botanical Garden to resemble Singapore\u2019s Gardens by the Bay, introducing fog and mist technology for the first time. They will plant 50 shade-loving species from Karnataka, Kerala, Odisha, and Himachal Pradesh. The project includes automated nozzles bought from Germany, a RO water facility, and 15 check dams to ensure water supply. Published on September 29, 2026.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Karnataka State Department of Horticulture",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "127952",
+    "title": "NIA arrests 13 for links with Bangladesh terror outfit",
+    "rephrased_article": "On September 29, 2026, the **National Investigation Agency (NIA)** arrested 13 people across Assam, Kerala, and West Bengal for their involvement in a conspiracy by an offshoot of the Jama\u2019atul Mujahideen Bangladesh (JMB). The arrests stem from initial actions by the Assam police on December 28, 2025. The accused were involved in spreading extremist ideology through digital platforms under Imam Mahmuder Kafila (IMK), a JMB offshoot led by **Imam Mahmud Habibullah**. Ten accused remain at large. Additionally, the NIA arrested Thangmang Haokip and two others for separate terror-related incidents in Manipur.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "JMB",
+    "gemma2_topic_tags": "[\"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128027",
+    "title": "Malkajgiri Municipal Corporation clears unauthorised structures",
+    "rephrased_article": "**T. Vinay Krishna Reddy**, Commissioner of the **Malkajgiri Municipal Corporation (MMC)**, directed officials to intensify actions against unauthorised constructions and encroachments across Malkajgiri, Uppal, Kapra, and LB Nagar zones on September 30, 2026. Officials removed various structures including floors, sheds, gates, compound walls, projections, ramps, and stalls in multiple locations. The Commissioner instructed departments to monitor cleared areas and prevent new encroachments.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "Malkajgiri Municipal Corporation",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128054",
+    "title": "Spain protests: Evicted 87-year-old woman to return to Madrid home",
+    "rephrased_article": "**Maria del Carmen Abascal**, an 87-year-old evicted woman, will return to her Madrid home after **the real estate firm** reduced her rent back to its pre-dispute rate following mass protests over Spain\u2019s housing crisis. Her monthly payments are capped at about $570 for eight years. The government responded with a package of measures aimed at protecting tenants from eviction but faces opposition from conservative parties.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "Spanish Government",
+    "gemma2_topic_tags": "[\"crime_violence\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128074",
+    "title": "New pedestrian subway on Chennai - Bengaluru Highway in Vellore will be ready by October, says NHAI",
+    "rephrased_article": "The **National Highways Authority of India (NHAI)** will complete a \u20b97.5-crore pedestrian subway near Green Circle in Vellore by October-end, ending a 1-km detour for pedestrians and motorists crossing the Chennai-Bengaluru Highway (NH-44). The 25-metre-long, 5.5-metre-wide subway will include safety features like ramps, CCTV cameras, and LED lights to reduce the average of 5-8 monthly pedestrian accidents at Green Circle roundabout. Currently under electrical work and plastering, it was initiated in 2022 but delayed due to heavy traffic.",
+    "gemma2_category": "regional",
+    "gemma2_sentiment": "positive",
+    "gemma2_sentiment_target": "NHAI",
+    "gemma2_topic_tags": "[\"infrastructure\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128006",
+    "title": "Democracy without choice: how unopposed Maharashtra rural polls silence dissent",
+    "rephrased_article": "Amid debates over the **Election Commission**'s special intensive revision drive, some Maharashtra villages have not held elections for up to 70 years. In Angar town and Perid village, local families like the Patils control leadership through unopposed elections, transitioning between political parties while denying allegations of threats against opponents. This practice extends to cooperative bodies and is defended as fostering unity but criticized by analysts and activists who argue it suppresses dissent and marginalizes communities. Published September 29, 2026.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "Election Commission",
+    "gemma2_topic_tags": "[\"protest_opposition\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128117",
+    "title": "\u2018Can officers act as government?\u2019 Congress seeks discussion on CS, Law Secretary letters in J&K Assembly",
+    "rephrased_article": "On September 29, 2026, **Congress** legislator Nizamuddin Bhat criticized letters from **J&K Chief Secretary Atal Dulloo** and **Law Secretary Achal Sethi**, opposing the Statehood resolution by **Chief Minister Omar Abdullah**, calling them a \"sub judice\" matter. Bhat demanded these be discussed in the J&K Assembly, arguing they challenged its authority. Meanwhile, **BJP** legislators walked out over the resolution, passed on September 28, demanding removal of the Speaker for acting partisanly. Published - September 30, 2026.",
+    "gemma2_category": "politics",
+    "gemma2_sentiment": "negative",
+    "gemma2_sentiment_target": "BJP",
+    "gemma2_topic_tags": "[\"protest_opposition\"]",
+    "gemma2_civic_flag": "0"
+  },
+  {
+    "id": "128059",
+    "title": "US Supreme Court Allows Trump's 3rd-Country Deportations",
+    "rephrased_article": "On Tuesday, the **Supreme Court** allowed **President Donald Trump's** administration to continue deporting people to third countries while considering the policy\u2019s legality. The court halted an appeals court ruling that forced the cancellation of a deportation flight carrying about 70 people. Since 2017, under often-secret agreements, over 25,000 individuals have been deported to more than two dozen countries, primarily Mexico. Federal attorneys argue this practice targets migrants with final deportation orders who cannot be returned to their original or home countries due to non-acceptance or criminal convictions. However, critics claim some face safety risks and potential persecution in third countries. The case reflects the Trump administration\u2019s broader immigration enforcement efforts aimed at deporting millions of undocumented immigrants.",
+    "gemma2_category": "international",
+    "gemma2_sentiment": "neutral",
+    "gemma2_sentiment_target": "US Supreme Court",
+    "gemma2_topic_tags": "[\"protest_opposition\"]",
+    "gemma2_civic_flag": "0"
+  }
+]

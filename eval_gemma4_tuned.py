@@ -60,17 +60,32 @@ def extract_json_payload(raw_text):
 
 def gemma4_classify(llm, title, rephrased):
     prompt = f"""<|turn>user
-You are a news classification system. Read the article and classify it into this EXACT JSON structure:
-{{
-  "category": "politics" | "crime" | "economy" | "international" | "regional" | "health" | "education" | "environment" | "sports" | "other",
-  "sentiment": "negative" | "positive" | "neutral",
-  "sentiment_target": "main subject of the article",
-  "topic_tags": ["0-3 tags from: rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition, political_gaffe"],
-  "beneficiary_group": "farmers" | "students" | "women" | "youth_unemployed" | "business_owners" | "taxpayers" | "low_income_households" | "general_public" | "none",
-  "geo_focus": "district/city or empty string"
-}}
+You are a news classification system. Read the article and classify it into a single JSON object.
 
-CATEGORY DEFINITIONS:
+OUTPUT FIELDS
+
+category: exactly one of "politics", "crime", "economy", "international", "regional", "health", "education", "environment", "sports", "other".
+  - Choose the category that matches the MAIN EVENT of the article, not the people involved.
+  - Example: a scam involving a politician is "crime" if the story is about the fraud or arrest, and "politics" if the story is about party fallout or elections.
+
+sentiment: exactly one of "negative", "positive", "neutral".
+  - This is the impact of the reported event on sentiment_target, NOT the tone of the writing.
+  - Use "neutral" for purely procedural or informational reports with no clear good or bad impact.
+
+sentiment_target: a short noun phrase naming the main subject affected (for example "Karnataka farmers", "Bengaluru commuters", "the state government").
+
+topic_tags: an array of 0 to 3 values, chosen ONLY from:
+  rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition, political_gaffe
+  - Use rape_sexual_crime only for sexual offences. Use crime_violence for other violent crime.
+  - Return [] if none apply.
+
+beneficiary_group: exactly one of "farmers", "students", "women", "youth_unemployed", "business_owners", "taxpayers", "low_income_households", "general_public", "none".
+  - Pick the single group most directly affected in a positive way.
+  - Use "none" for negative news, crime reports, or anything that is not a policy or benefit.
+
+geo_focus: the most specific city or district named in the article, written in English. Use "" if none is named.
+
+CATEGORY DEFINITIONS
 - politics: Elections, political parties, assembly resolutions, cabinet decisions, party disputes, rallies.
 - crime: Murders, arrests, violent offences, financial fraud, police probes, scams.
 - economy: Markets, Sensex, prices, inflation, agricultural procurement/MSP, real estate, corporate business.
@@ -82,10 +97,13 @@ CATEGORY DEFINITIONS:
 - sports: Matches, tournaments, Premier League, athletes, sports contracts.
 - other: Articles that do not fit into any of the above categories.
 
-Article Title: {title}
-Article: {rephrased}
+EXAMPLE OUTPUT
+{{"category":"crime","sentiment":"negative","sentiment_target":"Bengaluru residents","topic_tags":["corruption_scam"],"beneficiary_group":"none","geo_focus":"Bengaluru"}}
 
-Output ONLY the JSON object. Do not include extra text.<turn|>
+<title>{title}</title>
+<article>{rephrased}</article>
+
+Respond with the JSON object only. No explanation, no markdown, no extra text.<turn|>
 <|turn>model
 """
     response = llm(
@@ -178,10 +196,10 @@ Return ONLY the JSON.<turn|>
 def main():
     parser = argparse.ArgumentParser(description="Tuned Gemma 4 12B Sharded Benchmark Runner")
     parser.add_argument("--shard", type=int, default=0, help="Shard index (0 to num_shards - 1)")
-    parser.add_argument("--num-shards", type=int, default=10, help="Total number of parallel shards")
+    parser.add_argument("--num-shards", type=int, default=14, help="Total number of parallel shards")
     parser.add_argument("--model-repo", default="unsloth/gemma-4-12b-it-GGUF", help="HuggingFace model repo")
     parser.add_argument("--model-file", default="gemma-4-12b-it-Q4_K_M.gguf", help="GGUF model filename")
-    parser.add_argument("--sample-file", default="eval/sample_articles.json", help="Path to 40 sample articles")
+    parser.add_argument("--sample-file", default="eval/sample_70_articles.json", help="Path to sample articles")
     parser.add_argument("--output-file", default=None, help="Output JSON path")
     args = parser.parse_args()
 
@@ -216,27 +234,30 @@ def main():
     with open(args.sample_file, "r") as f:
         all_samples = json.load(f)
 
-    # Shard slicing: partition 40 articles evenly across num_shards
+    # Shard slicing: partition articles evenly across num_shards
     samples = [art for i, art in enumerate(all_samples) if i % args.num_shards == args.shard]
     logging.info(f"Runner Shard {args.shard}/{args.num_shards}: processing {len(samples)} articles (IDs: {[s['id'] for s in samples]})")
 
     results = []
-    category_matches = 0
+    category_agreements = 0
     total_latency = 0.0
 
     for idx, article in enumerate(samples):
         aid = article["id"]
         title = article["title"]
         rephrased = article["rephrased_article"]
-        expected_cat = article.get("expected_category")
+        g2_cat = article.get("gemma2_category") or article.get("expected_category", "other")
+        g2_sentiment = article.get("gemma2_sentiment", "neutral")
+        g2_target = article.get("gemma2_sentiment_target", "")
+        g2_topics = article.get("gemma2_topic_tags", "[]")
 
         t0 = time.time()
         try:
             ai_tags = gemma4_classify(llm, title, rephrased)
             pred_cat = ai_tags.get("category", "other")
-            is_cat_match = (pred_cat == expected_cat)
-            if is_cat_match:
-                category_matches += 1
+            is_agreed = (pred_cat == g2_cat)
+            if is_agreed:
+                category_agreements += 1
 
             # Civic flag check
             rule_tags = rule_based_classify(title, rephrased)
@@ -254,12 +275,15 @@ def main():
             res = {
                 "id": aid,
                 "title": title,
-                "expected_category": expected_cat,
-                "predicted_category": pred_cat,
-                "category_match": is_cat_match,
-                "sentiment": ai_tags.get("sentiment"),
-                "sentiment_target": ai_tags.get("sentiment_target"),
-                "topic_tags": ai_tags.get("topic_tags", []),
+                "gemma2_category": g2_cat,
+                "gemma4_category": pred_cat,
+                "category_agreement": is_agreed,
+                "gemma2_sentiment": g2_sentiment,
+                "gemma4_sentiment": ai_tags.get("sentiment"),
+                "gemma2_sentiment_target": g2_target,
+                "gemma4_sentiment_target": ai_tags.get("sentiment_target"),
+                "gemma2_topic_tags": g2_topics,
+                "gemma4_topic_tags": ai_tags.get("topic_tags", []),
                 "beneficiary_group": ai_tags.get("beneficiary_group"),
                 "geo_focus": ai_tags.get("geo_focus"),
                 "civic_flag_score": flag_score,
@@ -271,27 +295,27 @@ def main():
                 "latency_seconds": round(dur, 2)
             }
             results.append(res)
-            logging.info(f"[Shard {args.shard} | {idx+1}/{len(samples)}] #{aid} | Expected: {expected_cat} | Pred: {pred_cat} ({'✓' if is_cat_match else '✗'}) | {dur:.2f}s")
+            logging.info(f"[Shard {args.shard} | {idx+1}/{len(samples)}] #{aid} | Gemma2: {g2_cat} | Gemma4: {pred_cat} ({'AGREE ✓' if is_agreed else 'DIFF ✗'}) | {dur:.2f}s")
         except Exception as e:
             logging.error(f"Failed article #{aid}: {e}")
             results.append({
                 "id": aid,
                 "title": title,
-                "expected_category": expected_cat,
+                "gemma2_category": g2_cat,
                 "error": str(e)
             })
 
-    accuracy = (category_matches / len(samples) * 100) if samples else 0.0
+    agreement_pct = (category_agreements / len(samples) * 100) if samples else 0.0
     avg_latency = total_latency / len(samples) if samples else 0.0
 
     summary = {
         "shard": args.shard,
         "num_shards": args.num_shards,
-        "model_name": "gemma-4-12b-tuned",
+        "model_name": "gemma-4-12b",
         "model_file": args.model_file,
         "total_articles": len(samples),
-        "category_matches": category_matches,
-        "category_accuracy_pct": round(accuracy, 2),
+        "category_agreements": category_agreements,
+        "category_agreement_pct": round(agreement_pct, 2),
         "total_latency_seconds": round(total_latency, 2),
         "avg_latency_per_article": round(avg_latency, 2),
         "articles": results
@@ -300,7 +324,7 @@ def main():
     with open(args.output_file, "w") as f:
         json.dump(summary, f, indent=2)
 
-    logging.info(f"Shard {args.shard} finished: {category_matches}/{len(samples)} correct ({accuracy:.1f}%) in {total_latency:.1f}s")
+    logging.info(f"Shard {args.shard} finished: {category_agreements}/{len(samples)} agreed ({agreement_pct:.1f}%) in {total_latency:.1f}s")
 
 if __name__ == "__main__":
     main()
