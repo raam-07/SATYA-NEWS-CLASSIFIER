@@ -150,7 +150,10 @@ def insert_article_entities(cursor, article_id, enriched_article):
             VALUES (?, ?, ?)
         """, entity_rows)
 
-MODEL_PATH = "./models/gemma-2-9b-it-Q6_K.gguf"
+MODEL_REPO = os.environ.get("CLASSIFIER_MODEL_REPO", "unsloth/gemma-4-12b-it-GGUF")
+MODEL_FILENAME = os.environ.get("CLASSIFIER_MODEL_FILE", "gemma-4-12b-it-Q4_K_M.gguf")
+MODEL_DIR = os.environ.get("CLASSIFIER_MODEL_DIR", "./models")
+MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILENAME)
 
 MAX_ARTICLES_TO_PROCESS = 50
 MAX_RUNTIME_SECONDS = 5 * 3600
@@ -881,14 +884,22 @@ def main():
 
             # --- PASS 2: Gemma AI ---
             if llm is None:
-                logging.info("Loading Gemma model...")
                 if not os.path.exists(MODEL_PATH):
-                    raise FileNotFoundError(f"Model not found at {MODEL_PATH}")
+                    os.makedirs(MODEL_DIR, exist_ok=True)
+                    logging.info(f"Downloading {MODEL_FILENAME} from {MODEL_REPO} via HuggingFace...")
+                    from huggingface_hub import hf_hub_download
+                    hf_hub_download(
+                        repo_id=MODEL_REPO,
+                        filename=MODEL_FILENAME,
+                        local_dir=MODEL_DIR,
+                        local_dir_use_symlinks=False
+                    )
+                logging.info(f"Loading Gemma model from {MODEL_PATH}...")
                 llm = Llama(
                     model_path=MODEL_PATH,
                     n_ctx=4096,
                     n_batch=512,
-                    n_threads=2,
+                    n_threads=4,
                     verbose=False
                 )
                 logging.info("Gemma model loaded.")
