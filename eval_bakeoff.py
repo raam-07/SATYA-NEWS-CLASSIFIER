@@ -17,7 +17,7 @@ sys.modules.setdefault('libsql', MagicMock())
 from satya import (
     ai_classify,
     rule_based_classify,
-    civic_issue_score,
+    rule_based_civic_flag,
     gemma_validate_civic_flag,
     VALID_CATEGORIES,
     VALID_SENTIMENTS
@@ -82,8 +82,11 @@ def main():
             if is_cat_match:
                 category_matches += 1
 
-            # Test civic issue scoring + validation
-            flag_score, flag_reason = civic_issue_score(title, rephrased)
+            # Run rule-based classification and civic flagging
+            rule_tags = rule_based_classify(title, rephrased)
+            flag_score, flag_category, flag_reason = rule_based_civic_flag(
+                title, rephrased, rule_tags, ai_tags
+            )
             confirmed = False
             gemma_reason = None
             if flag_score >= 3:
@@ -104,6 +107,7 @@ def main():
                 "beneficiary_group": ai_tags.get("beneficiary_group"),
                 "geo_focus": ai_tags.get("geo_focus"),
                 "civic_flag_score": flag_score,
+                "civic_flag_category": flag_category,
                 "civic_flag_confirmed": confirmed,
                 "civic_flag_reason": gemma_reason or flag_reason,
                 "latency_seconds": round(dur, 2)
