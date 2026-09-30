@@ -3,7 +3,7 @@ import re
 import json
 import logging
 import sqlite3
-from entity_rules import primary_states
+from entity_rules import primary_states, primary_parties, primary_ministers
 
 # Set up logging to stdout
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -128,13 +128,13 @@ def main():
     cursor.execute("PRAGMA table_info(articles)")
     has_geo = "geo_focus" in [c[1] for c in cursor.fetchall()]
     total_processed = 0
-    batch_size = 10000
+    batch_size = 2000   # rows now include article content (for mention counts)
     
     while True:
         logging.info(f"Fetching batch of {batch_size} articles starting after ID {start_id}...")
         cursor.execute(f"""
             SELECT id, party_mentioned, ministers_mentioned, states_mentioned, cities_mentioned, topic_tags,
-                   title, category, {'geo_focus' if has_geo else "''"}
+                   title, category, {'geo_focus' if has_geo else "''"}, sentiment_target, content
             FROM articles
             WHERE status IN ('classified', 'entity_processed', 'processed') AND id > ?
             ORDER BY id ASC
@@ -167,8 +167,10 @@ def main():
                         return j
                     return []
             
-            parties = parse_list(party_json)
-            ministers = parse_list(ministers_json)
+            title, category, sent_target, content = r[6] or "", r[7] or "", r[9] or "", r[10] or ""
+            parties = primary_parties(title, content, parse_list(party_json), sent_target, category, party_slugify)
+            found_m = parse_list(ministers_json)   # every alias that matched is already in here
+            ministers = primary_ministers(title, content, found_m, sent_target, category, found_m)
             # /state pages: only states the article is ABOUT (see entity_rules.py)
             states = primary_states(r[6] or "", parse_list(states_json), r[8] or "", r[7] or "")
             cities = parse_list(cities_json)

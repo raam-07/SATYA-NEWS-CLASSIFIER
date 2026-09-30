@@ -18,7 +18,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from llama_cpp import Llama
 import argparse
-from entity_rules import primary_states
+from entity_rules import primary_states, primary_parties, primary_ministers
 
 # Setup argument parser for parallel sharding
 parser = argparse.ArgumentParser()
@@ -129,8 +129,9 @@ def party_slugify(name):
 
 def insert_article_entities(cursor, article_id, enriched_article):
     kinds = [
-        ('party', enriched_article.get('party_mentioned', [])),
-        ('minister', enriched_article.get('ministers_mentioned', [])),
+        # entity pages list what an article is ABOUT (entity_rules.py), not every name it mentions
+        ('party', enriched_article.get('primary_parties', enriched_article.get('party_mentioned', []))),
+        ('minister', enriched_article.get('primary_ministers', enriched_article.get('ministers_mentioned', []))),
         # /state pages list what an article is ABOUT, not every state it mentions
         ('state', enriched_article.get('primary_states', enriched_article.get('states_mentioned', []))),
         ('city', enriched_article.get('cities_mentioned', [])),
@@ -1008,6 +1009,12 @@ def main():
                 **rule_tags,
                 **ai_tags,
                 "topic_tags": combined_topic_tags,
+                "primary_parties": primary_parties(
+                    title, content, rule_tags.get('party_mentioned', []),
+                    ai_tags.get('sentiment_target', ''), ai_tags.get('category', ''), party_slugify),
+                "primary_ministers": primary_ministers(
+                    title, content, rule_tags.get('ministers_mentioned', []),
+                    ai_tags.get('sentiment_target', ''), ai_tags.get('category', ''), MINISTERS),
                 "primary_states": primary_states(
                     title, rule_tags.get('states_mentioned', []),
                     ai_tags.get('geo_focus', ''), ai_tags.get('category', ''), STATES),
@@ -1081,7 +1088,7 @@ def main():
 
             logging.info(f"Saved [{processed_count}]: {title}")
             logging.info(f"  Category: {ai_tags['category']} | Sentiment: {ai_tags['sentiment']} | Target: {ai_tags['sentiment_target']}")
-            logging.info(f"  Parties: {rule_tags['party_mentioned']} | Ministers: {rule_tags['ministers_mentioned']}")
+            logging.info(f"  Parties: {rule_tags['party_mentioned']} -> pages {enriched_article['primary_parties']} | Ministers: {rule_tags['ministers_mentioned']} -> pages {enriched_article['primary_ministers']}")
             logging.info(f"  States mentioned: {rule_tags['states_mentioned']} | State pages: {enriched_article['primary_states']} | Topics: {combined_topic_tags}")
             logging.info(f"  Beneficiary: {ai_tags['beneficiary_group']} | Geo Focus: {ai_tags['geo_focus']}")
             if civic_flag:

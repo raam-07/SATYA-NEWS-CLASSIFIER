@@ -91,3 +91,92 @@ def primary_states(title, states_mentioned, geo_focus="", category="", all_state
             and mentioned[0] not in NO_SINGLE_STATE_RULE:                  # rule 3
         out.append(mentioned[0])
     return out
+
+
+# ---------------------------------------------------------------------------
+# Parties and ministers: same idea. Keyword detection finds every name in the text;
+# a party / minister page should only list articles that are about them.
+# ---------------------------------------------------------------------------
+
+# "Congress" inside another party's name, or the US Congress, is not the INC.
+_NOT_INC_BEFORE = re.compile(r"(?<![\w.])(?:YSR|YSRCP|Trinamool|TRINAMOOL|Nationalist|NATIONALIST|Kerala|US|U\.S\.|American)\s+$")
+_SINGLE_ALIAS_TO_PERSON = {"Didi": "Mamata Banerjee"}
+
+
+def _spans(alias, text):
+    flags = 0 if (alias.isupper() or " " not in alias) else re.IGNORECASE
+    return [m.span() for m in re.finditer(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", text or "", flags)]
+
+
+def _count(aliases, text, is_congress=False):
+    """Distinct mentions of any alias (overlaps merged: 'Narendra Modi' = 1, not 2)."""
+    spans = []
+    for a in aliases:
+        for s, e in _spans(a, text):
+            if is_congress and a in ("Congress", "INC") and _NOT_INC_BEFORE.search(text[max(0, s - 25):s]):
+                continue
+            spans.append((s, e))
+    spans.sort()
+    n, end = 0, -1
+    for s, e in spans:
+        if s >= end:
+            n += 1
+        end = max(end, e)
+    return n
+
+
+def _in(aliases, text):
+    return any(_spans(a, text) for a in aliases)
+
+
+def _primary(groups, title, text, sentiment_target, category, congress_key=None):
+    """groups: {key: [aliases found]} -> keys the article is about."""
+    counts = {k: _count(al, text, k == congress_key) for k, al in groups.items()}
+    live = {k for k, c in counts.items() if c > 0}          # drops 'Congress' that was only YSR/TMC/NCP/US
+    keep = []
+    for k in live:
+        al = groups[k]
+        if _in(al, title):
+            keep.append(k)
+        elif category == "international":
+            continue                                          # foreign stories: headline only
+        elif sentiment_target and _in(al, sentiment_target):
+            keep.append(k)
+        elif counts[k] >= 2 or len(live) == 1:
+            keep.append(k)
+    return keep
+
+
+def primary_parties(title, content, parties_found, sentiment_target="", category="", slug=lambda x: x):
+    """-> the subset of parties_found (original names) the article is about."""
+    text = f"{title} {content}"
+    groups = {}
+    for p in parties_found or []:
+        groups.setdefault(slug(p), []).append(p)
+    congress_key = slug("Congress")
+    keep = set(_primary(groups, title, text, sentiment_target, category, congress_key))
+    return [p for p in parties_found if slug(p) in keep]
+
+
+def primary_ministers(title, content, ministers_found, sentiment_target="", category="", all_ministers=()):
+    """-> the subset of ministers_found the article is about. Aliases ('Modi', 'PM Modi')
+    are grouped with the full name that contains them ('Narendra Modi')."""
+    text = f"{title} {content}"
+    full_names = [m for m in all_ministers if " " in m and not m.startswith("PM ")]
+
+    def person(m):
+        if m in _SINGLE_ALIAS_TO_PERSON:
+            return _SINGLE_ALIAS_TO_PERSON[m]
+        if " " in m and not m.startswith("PM "):
+            return m
+        core = m[3:] if m.startswith("PM ") else m
+        hits = [f for f in full_names if re.search(r"(?<!\w)" + re.escape(core) + r"(?!\w)", f)]
+        return hits[0] if len(hits) == 1 else m
+
+    groups = {}
+    for m in ministers_found or []:
+        groups.setdefault(person(m), []).append(m)
+    for k in groups:                                           # count every alias of the person, found or not
+        groups[k] = sorted(set(groups[k] + [a for a in all_ministers if person(a) == k]), key=len, reverse=True)
+    keep = set(_primary(groups, title, text, sentiment_target, category))
+    return [m for m in ministers_found if person(m) in keep]
