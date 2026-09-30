@@ -1,10 +1,10 @@
-name: Tuned Gemma 4 12B Classifier Benchmark (14 Parallel Runners)
+name: Tuned Gemma 4 12B Classifier Benchmark (140 Articles, 14 Runners)
 
 on:
   workflow_dispatch:
 
 concurrency:
-  group: gemma4-tuned-benchmark-70
+  group: gemma4-tuned-benchmark-140
   cancel-in-progress: true
 
 jobs:
@@ -75,7 +75,7 @@ jobs:
           python eval_gemma4_tuned.py \
             --shard ${{ matrix.shard }} \
             --num-shards 14 \
-            --sample-file eval/sample_70_articles.json \
+            --sample-file eval/sample_140_articles.json \
             --output-file eval_results_gemma-4-12b_shard_${{ matrix.shard }}.json
 
       - name: Upload Shard Results Artifact

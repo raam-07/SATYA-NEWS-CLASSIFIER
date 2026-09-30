@@ -67,6 +67,7 @@ OUTPUT FIELDS
 category: exactly one of "politics", "crime", "economy", "international", "regional", "health", "education", "environment", "sports", "other".
   - Choose the category that matches the MAIN EVENT of the article, not the people involved.
   - Example: a scam involving a politician is "crime" if the story is about the fraud or arrest, and "politics" if the story is about party fallout or elections.
+  - INTERNATIONAL OVERRIDE: If the story happens entirely outside India and has NO Indian angle, the category MUST be "international", whatever its topic (foreign politics, crime, sport, health, business, science, education). If there IS an Indian angle, pick the best-fitting topic category instead.
 
 sentiment: exactly one of "negative", "positive", "neutral".
   - This is the impact of the reported event on sentiment_target, NOT the tone of the writing.
@@ -89,7 +90,7 @@ CATEGORY DEFINITIONS
 - politics: Elections, political parties, assembly resolutions, cabinet decisions, party disputes, rallies.
 - crime: Murders, arrests, violent offences, financial fraud, police probes, scams.
 - economy: Markets, Sensex, prices, inflation, agricultural procurement/MSP, real estate, corporate business.
-- international: Foreign affairs, global conflicts, UN, bilateral ties, Indian diaspora abroad.
+- international: Foreign affairs, global conflicts, UN, bilateral ties, Indian diaspora abroad, or any foreign event with NO Indian angle.
 - regional: State infrastructure (metro, buses), local public transport, regional civic governance.
 - health: Diseases, hospitals, doctors, medical colleges, public health policies.
 - education: Schools, universities, examinations, scholarships, college student elections.
@@ -199,7 +200,7 @@ def main():
     parser.add_argument("--num-shards", type=int, default=14, help="Total number of parallel shards")
     parser.add_argument("--model-repo", default="unsloth/gemma-4-12b-it-GGUF", help="HuggingFace model repo")
     parser.add_argument("--model-file", default="gemma-4-12b-it-Q4_K_M.gguf", help="GGUF model filename")
-    parser.add_argument("--sample-file", default="eval/sample_70_articles.json", help="Path to sample articles")
+    parser.add_argument("--sample-file", default="eval/sample_140_articles.json", help="Path to sample articles")
     parser.add_argument("--output-file", default=None, help="Output JSON path")
     args = parser.parse_args()
 
