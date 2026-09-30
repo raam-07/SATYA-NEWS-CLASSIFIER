@@ -27,7 +27,7 @@ jobs:
             INPUT_SHARD="${{ github.event.client_payload.shard }}"
           fi
           if [ -z "$INPUT_SHARD" ] || [ "$INPUT_SHARD" = "all" ]; then
-            echo "shards=[0,1,2,3,4,5,6,7,8,9]" >> $GITHUB_OUTPUT
+            echo "shards=[0,1,2,3,4,5,6,7,8,9,10,11,12]" >> $GITHUB_OUTPUT
           else
             echo "shards=[$INPUT_SHARD]" >> $GITHUB_OUTPUT
           fi
@@ -38,7 +38,7 @@ jobs:
     timeout-minutes: 350 # Just under GitHub's 6hr limit
     strategy:
       fail-fast: false
-      max-parallel: 10
+      max-parallel: 15
       matrix:
         shard: ${{ fromJson(needs.setup.outputs.shards) }}
     permissions:
@@ -74,7 +74,7 @@ jobs:
           rows = None
           for attempt in range(3):
               try:
-                  rows = query(f"SELECT COUNT(*) FROM articles WHERE status = 'rephrased' AND (id % 10) = {shard}")
+                  rows = query(f"SELECT COUNT(*) FROM articles WHERE status = 'rephrased' AND (id % 13) = {shard}")
                   break
               except Exception as e:
                   print(f"Pre-check query failed (attempt {attempt+1}/3): {e}")
@@ -159,7 +159,7 @@ jobs:
           SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
           SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
           SHARD_ID: ${{ matrix.shard }}
-          NUM_SHARDS: 10
+          NUM_SHARDS: 13
         run: |
           python satya.py --shard $SHARD_ID --num-shards $NUM_SHARDS
 
@@ -200,7 +200,7 @@ jobs:
           
           # Check remaining for this shard
           stmt_shard = {
-              'sql': f"SELECT id FROM articles WHERE status = 'rephrased' AND (id % 10) = {shard} LIMIT 1"
+              'sql': f"SELECT id FROM articles WHERE status = 'rephrased' AND (id % 13) = {shard} LIMIT 1"
           }
           req_shard = urllib.request.Request(
               url + '/v2/pipeline',
