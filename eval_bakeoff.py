@@ -6,6 +6,13 @@ import sys
 import time
 from llama_cpp import Llama
 
+# Mock unused external dependencies so eval runs in pure headless environment
+from unittest.mock import MagicMock
+sys.modules.setdefault('gspread', MagicMock())
+sys.modules.setdefault('oauth2client', MagicMock())
+sys.modules.setdefault('oauth2client.service_account', MagicMock())
+sys.modules.setdefault('libsql', MagicMock())
+
 # Import pure functions from satya.py
 from satya import (
     ai_classify,
