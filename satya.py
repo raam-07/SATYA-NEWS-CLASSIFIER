@@ -490,59 +490,83 @@ VALID_CATEGORIES = [
 VALID_SENTIMENTS = ["negative", "positive", "neutral"]
 
 def ai_classify(llm, title, rephrased_article):
-    """Uses Gemma to classify category, sentiment, sentiment target, topic tags, beneficiary group, and geo focus."""
+    """Uses Gemma 4 to classify category, sentiment, sentiment target, topic tags, beneficiary group, and geo focus."""
 
-    prompt = f"""<start_of_turn>user
-You are a news classifier. Analyze the news article below and return ONLY a valid JSON object with these exact fields:
+    prompt = f"""<|turn>user
+You are a news classification system. Read the article and classify it into a single JSON object.
 
-1. "category": one of — politics, crime, economy, international, regional, health, education, environment, sports, other
-   How to choose "international" (this rule overrides the topic):
-   - If the story happens outside India and has NO Indian angle, the category MUST be "international",
-     whatever its topic — foreign politics, crime, sport, health, business, science and celebrity news included.
-   - An Indian angle means the story involves India, Indian citizens, the Indian government, an Indian
-     company, team, athlete or public figure, or has a direct effect on India.
-   - If there IS an Indian angle, pick the best-fitting topic category instead. Use "international" for such a
-     story only when it is about India's relations with other countries (diplomacy, summits, trade deals, borders).
-   Examples:
-     "Argentina beat Spain in the FIFA World Cup final"         -> international
-     "Ilhan Omar introduces a resolution in the US Congress"    -> international
-     "Three malaria deaths at a Frankfurt hospital"              -> international
-     "England beat India by 27 runs to win the ODI series"      -> sports
-     "Modi and Trump discuss tariffs at the G20"                 -> international
-     "Anganwadi workers strike over unpaid wages"                -> politics
-2. "sentiment": one of — negative, positive, neutral (toward the main subject/government)
-3. "sentiment_target": the main subject of the article (e.g. "BJP", "Narendra Modi", "Indian Government", "Police")
-4. "topic_tags": a list of 0-3 tags from ONLY these options — rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition, political_gaffe. Only include a tag if the article is PRIMARILY about that topic.
-5. "beneficiary_group": one of — farmers, students, women, youth_unemployed, business_owners, taxpayers, low_income_households, general_public, none
-6. "geo_focus": the specific district, constituency, or micro-location mentioned in the article, or "" if none (e.g., "Kaleshwaram", "Kodagu", "Tirthahalli")
+OUTPUT FIELDS
 
-Return ONLY the JSON. No explanation. No extra text.
+category: exactly one of "politics", "crime", "economy", "international", "regional", "health", "education", "environment", "sports", "other".
+  - Choose the category that matches the MAIN EVENT of the article, not the people involved.
+  - Example: a scam involving a politician is "crime" if the story is about the fraud or arrest, and "politics" if the story is about party fallout or elections.
+  - INTERNATIONAL OVERRIDE: If the story happens entirely outside India and has NO Indian angle, the category MUST be "international", whatever its topic (foreign politics, crime, sport, health, business, science, education). If there IS an Indian angle, pick the best-fitting topic category instead.
 
-Article Title: {title}
-Article: {rephrased_article}
-<end_of_turn>
-<start_of_turn>model
+sentiment: exactly one of "negative", "positive", "neutral".
+  - This is the impact of the reported event on sentiment_target, NOT the tone of the writing.
+  - Use "neutral" for purely procedural or informational reports with no clear good or bad impact.
+
+sentiment_target: a short noun phrase naming the main subject affected (for example "Karnataka farmers", "Bengaluru commuters", "the state government").
+
+topic_tags: an array of 0 to 3 values, chosen ONLY from:
+  rape_sexual_crime, corruption_scam, crime_violence, economy, foreign_policy, infrastructure, health, education, farmer_agriculture, protest_opposition, political_gaffe
+  - Use rape_sexual_crime only for sexual offences. Use crime_violence for other violent crime.
+  - Return [] if none apply.
+
+beneficiary_group: exactly one of "farmers", "students", "women", "youth_unemployed", "business_owners", "taxpayers", "low_income_households", "general_public", "none".
+  - Pick the single group most directly affected in a positive way.
+  - Use "none" for negative news, crime reports, or anything that is not a policy or benefit.
+
+geo_focus: the most specific city or district named in the article, written in English. Use "" if none is named.
+
+CATEGORY DEFINITIONS
+- politics: Elections, political parties, assembly resolutions, cabinet decisions, party disputes, rallies.
+- crime: Murders, arrests, violent offences, financial fraud, police probes, scams.
+- economy: Markets, Sensex, prices, inflation, agricultural procurement/MSP, real estate, corporate business.
+- international: Foreign affairs, global conflicts, UN, bilateral ties, Indian diaspora abroad, or any foreign event with NO Indian angle.
+- regional: State infrastructure (metro, buses), local public transport, regional civic governance.
+- health: Diseases, hospitals, doctors, medical colleges, public health policies.
+- education: Schools, universities, examinations, scholarships, college student elections.
+- environment: Climate, wildlife, forests, pollution, glacial lakes, conservation.
+- sports: Matches, tournaments, Premier League, athletes, sports contracts.
+- other: Articles that do not fit into any of the above categories.
+
+EXAMPLE OUTPUT
+{{"category":"crime","sentiment":"negative","sentiment_target":"Bengaluru residents","topic_tags":["corruption_scam"],"beneficiary_group":"none","geo_focus":"Bengaluru"}}
+
+<title>{title}</title>
+<article>{rephrased_article}</article>
+
+Respond with the JSON object only. No explanation, no markdown, no extra text.<turn|>
+<|turn>model
 """
 
     try:
         response = llm(
             prompt,
-            max_tokens=200,
+            max_tokens=600,
             temperature=0.1,
             top_p=0.9,
-            stop=["<end_of_turn>", "<start_of_turn>"],
+            stop=["<turn|>", "<|turn>", "<eos>"],
             echo=False
         )
 
         raw = response['choices'][0].get('text', '').strip()
-        raw = re.sub(r'```json|```', '', raw).strip()
-        parsed = json.loads(raw)
+        text = raw
+        if "<channel|>" in text:
+            text = text.split("<channel|>")[-1].strip()
+        text = re.sub(r'<\|channel\|?>thought.*?<channel\|?>', '', text, flags=re.DOTALL).strip()
+        text = re.sub(r'```json|```', '', text).strip()
+        match = re.search(r'(\{.*\})', text, re.DOTALL)
+        if match:
+            text = match.group(1).strip()
+        parsed = json.loads(text)
 
-        category = parsed.get('category', 'other').lower()
+        category = str(parsed.get('category', 'other')).lower().strip()
         if category not in VALID_CATEGORIES:
             category = 'other'
 
-        sentiment = parsed.get('sentiment', 'neutral').lower()
+        sentiment = str(parsed.get('sentiment', 'neutral')).lower().strip()
         if sentiment not in VALID_SENTIMENTS:
             sentiment = 'neutral'
 
@@ -557,7 +581,7 @@ Article: {rephrased_article}
             gemma_topics = []
 
         # Validate beneficiary group
-        beneficiary_group = parsed.get('beneficiary_group', 'none').lower()
+        beneficiary_group = str(parsed.get('beneficiary_group', 'none')).lower().strip()
         VALID_BENEFICIARIES = [
             'farmers', 'students', 'women', 'youth_unemployed', 
             'business_owners', 'taxpayers', 'low_income_households', 
@@ -726,13 +750,13 @@ def rule_based_civic_flag(title, content, rule_tags, ai_tags):
 def gemma_validate_civic_flag(llm, title, rephrased, flag_reason):
     """
     For articles that scored >= 7 in rule-based flagging,
-    ask Gemma to confirm if this genuinely needs public attention.
+    ask Gemma 4 to confirm if this genuinely needs public attention.
     Returns (confirmed: bool, gemma_reason: str)
     """
     if llm is None:
         return True, flag_reason
 
-    prompt = f"""<start_of_turn>user
+    prompt = f"""<|turn>user
 You are a civic awareness system. Read the news article below and answer:
 
 Is this article reporting something that an aware Indian citizen should be URGENTLY concerned about?
@@ -741,22 +765,30 @@ Specifically: is it about abuse of power, institutional failure, suppression of 
 Article Title: {title}
 Article: {rephrased[:400]}
 
+Reason flagged: {flag_reason}
+
 Return ONLY a JSON: {{"urgent": "yes" or "no", "reason": "one sentence max 20 words explaining why"}}
-No extra text.
-<end_of_turn>
-<start_of_turn>model
+No extra text.<turn|>
+<|turn>model
 """
     try:
         response = llm(
             prompt,
-            max_tokens=80,
+            max_tokens=300,
             temperature=0.1,
-            stop=["<end_of_turn>", "<start_of_turn>"],
+            stop=["<turn|>", "<|turn>", "<eos>"],
             echo=False
         )
         raw = response['choices'][0].get('text', '').strip()
-        raw = re.sub(r'```json|```', '', raw).strip()
-        parsed = json.loads(raw)
+        text = raw
+        if "<channel|>" in text:
+            text = text.split("<channel|>")[-1].strip()
+        text = re.sub(r'<\|channel\|?>thought.*?<channel\|?>', '', text, flags=re.DOTALL).strip()
+        text = re.sub(r'```json|```', '', text).strip()
+        match = re.search(r'(\{.*\})', text, re.DOTALL)
+        if match:
+            text = match.group(1).strip()
+        parsed = json.loads(text)
         confirmed = parsed.get('urgent', 'no').lower() == 'yes'
         reason = str(parsed.get('reason', flag_reason)).strip()
         return confirmed, reason
