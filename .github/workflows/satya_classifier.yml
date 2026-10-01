@@ -257,7 +257,7 @@ jobs:
               print(f"Total remaining rephrased articles across database: {remaining_total}")
               if remaining_total == 0:
                   print("Database completely caught up. Revalidating all content caches...")
-                  revalidate_url = f"https://satyadheesh.in/api/revalidate?secret={os.environ['REVALIDATE_SECRET']}&force=true"
+                  revalidate_url = f"https://satyadheesh.in/api/revalidate?secret={os.environ['REVALIDATE_SECRET']}"
                   try:
                       urllib.request.urlopen(revalidate_url)
                       print("Revalidation trigger sent.")
@@ -292,7 +292,7 @@ jobs:
           import os, urllib.request
           secret = os.environ.get('REVALIDATE_SECRET', '').strip()
           if secret:
-              url = f'https://satyadheesh.in/api/revalidate?secret={secret}&force=true'
+              url = f'https://satyadheesh.in/api/revalidate?secret={secret}'
               try:
                   with urllib.request.urlopen(url) as resp:
                       print('Revalidation succeeded:', resp.read().decode('utf-8'))
