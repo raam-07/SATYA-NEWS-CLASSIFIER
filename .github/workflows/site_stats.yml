@@ -1,0 +1,39 @@
+name: Site stats (daily)
+
+# Recomputes the site's precomputed counts (site_stats table) once a day via the
+# frontend, so pages read one row instead of counting articles on every cache refresh.
+# Full all-time recount on the 1st of each month (or on demand after a bulk re-tag).
+on:
+  schedule:
+    - cron: '17 22 * * *'   # 03:47 IST
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Recount all-time totals from scratch (1 = yes)'
+        required: false
+        default: '0'
+
+env:
+  CORE_TOKEN: ${{ secrets.CORE_TOKEN }}
+  PYTHONPATH: ${{ github.workspace }}/.ci
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Refresh site stats
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          FULL_INPUT: ${{ github.event.inputs.full }}
+        run: |
+          FULL="${FULL_INPUT:-0}"
+          if [ "$(date -u +%d)" = "01" ]; then FULL=1; fi
+          for i in 1 2 3; do
+            if curl -fsS --max-time 600 -X POST \
+                 "https://satyadheesh.in/api/stats/refresh?full=${FULL}&secret=${REVALIDATE_SECRET}"; then
+              echo; exit 0
+            fi
+            echo "attempt $i failed; retrying in 60s"; sleep 60
+          done
+          exit 1

@@ -1,0 +1,337 @@
+name: Satya Classifier Pipeline
+
+on:
+  repository_dispatch:
+    types: [trigger-classifier] # <--- LISTEN FOR THIS TRIGGER EVENT
+  workflow_dispatch:            # Allows you to still run it manually
+    inputs:
+      shard:
+        description: 'Shard ID to process (all, or 0-9)'
+        required: false
+        default: 'all'
+
+concurrency:
+  group: satya-classifier-${{ github.event.inputs.shard || github.event.client_payload.shard || 'all' }}
+  cancel-in-progress: false  # Wait for running job to finish, don't cancel it
+
+env:
+  CORE_TOKEN: ${{ secrets.CORE_TOKEN }}
+  PYTHONPATH: ${{ github.workspace }}/.ci
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.set-shards.outputs.shards }}
+    steps:
+      - id: set-shards
+        run: |
+          INPUT_SHARD="${{ github.event.inputs.shard }}"
+          if [ -z "$INPUT_SHARD" ]; then
+            INPUT_SHARD="${{ github.event.client_payload.shard }}"
+          fi
+          if [ -z "$INPUT_SHARD" ] || [ "$INPUT_SHARD" = "all" ]; then
+            echo "shards=[0,1,2,3,4,5,6,7,8,9,10,11,12]" >> $GITHUB_OUTPUT
+          else
+            echo "shards=[$INPUT_SHARD]" >> $GITHUB_OUTPUT
+          fi
+
+  classify:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 350 # Just under GitHub's 6hr limit
+    strategy:
+      fail-fast: false
+      max-parallel: 13
+      matrix:
+        shard: ${{ fromJson(needs.setup.outputs.shards) }}
+    permissions:
+      actions: write
+
+    steps:
+      # 0. Pre-check Database for Classification
+      - name: Pre-check Database for Classification
+        id: pre-check
+        env:
+          SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
+          SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
+          SHARD_ID: ${{ matrix.shard }}
+        run: |
+          python3 << 'EOF'
+          import os, sys, time, urllib.request, json
+          url = os.environ['SATYA_DB_URL'].strip().strip('\"\'').replace('libsql://', 'https://').rstrip('/')
+          token = os.environ['SATYA_DB_TOKEN'].strip().strip('\"\'')
+          shard = int(os.environ['SHARD_ID'])
+
+          def query(sql):
+              req = urllib.request.Request(
+                  url + '/v2/pipeline',
+                  data=json.dumps({'requests': [ { 'type': 'execute', 'stmt': {'sql': sql} }, { 'type': 'close' } ]}).encode('utf-8'),
+                  headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+                  method='POST'
+              )
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return json.loads(r.read().decode('utf-8'))['results'][0]['response']['result']['rows']
+
+          # A DB error must FAIL the job loudly — treating it as "nothing to
+          # classify" made every shard skip silently while work piled up.
+          rows = None
+          for attempt in range(3):
+              try:
+                  rows = query(f"SELECT COUNT(*) FROM articles WHERE status = 'rephrased' AND (id % 13) = {shard}")
+                  break
+              except Exception as e:
+                  print(f"Pre-check query failed (attempt {attempt+1}/3): {e}")
+                  time.sleep(5 * (attempt + 1))
+          if rows is None:
+              print("::error::Pre-check could not reach the database after 3 attempts — failing instead of silently skipping.")
+              sys.exit(1)
+
+          remaining = int(rows[0][0].get('value', rows[0][0]) if isinstance(rows[0][0], dict) else rows[0][0])
+          print(f"Remaining rephrased articles for shard {shard}: {remaining}")
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('should_run=true\n' if remaining > 0 else 'should_run=false\n')
+          EOF
+
+      # 1. Checkout the repo
+      - name: Checkout Repository
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}-core
+          token: ${{ secrets.CORE_TOKEN }}
+
+      # 2. Set up Python
+      - name: Set up Python 3.10
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 3. Cache pip dependencies for faster runs
+      - name: Cache pip dependencies
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-satya-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-satya-
+
+      # 4. Install dependencies
+      - name: Install Dependencies
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        run: |
+          pip install --upgrade pip
+          pip install gspread oauth2client huggingface_hub libsql
+          CMAKE_ARGS="-DLLAMA_AVX=OFF -DLLAMA_AVX2=OFF -DLLAMA_FMA=OFF -DLLAMA_F16C=OFF -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_FMA=OFF" pip install llama-cpp-python --no-binary llama-cpp-python --no-cache-dir
+
+      # 5. Cache the Gemma model so it doesn't download every run
+      - name: Cache Gemma Model
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        id: cache-model
+        uses: actions/cache@v4
+        with:
+          path: ./models
+          key: gemma-4-12b-q4-v1
+
+      # 6. Download the Gemma model only if not cached
+      - name: Download Gemma Model
+        if: ${{ steps.pre-check.outputs.should_run == 'true' && steps.cache-model.outputs.cache-hit != 'true' }}
+        run: |
+          mkdir -p ./models
+          echo "Downloading Gemma 4 12B IT model via huggingface_hub..."
+          python -c "
+          from huggingface_hub import hf_hub_download
+          hf_hub_download(
+            repo_id='unsloth/gemma-4-12b-it-GGUF',
+            filename='gemma-4-12b-it-Q4_K_M.gguf',
+            local_dir='./models',
+            local_dir_use_symlinks=False
+          )
+          "
+          echo "Model downloaded successfully."
+
+      # 7. Verify model exists
+      - name: Verify Model
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        run: |
+          ls -lh ./models/
+
+      # 8. Run the classifier
+      - name: Run Satya Classifier
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
+          SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
+          SHARD_ID: ${{ matrix.shard }}
+          NUM_SHARDS: 13
+        run: |
+          python satya.py --shard $SHARD_ID --num-shards $NUM_SHARDS
+
+      # 9. Upload logs as artifact for debugging
+      - name: Upload Log File
+        if: ${{ always() && steps.pre-check.outputs.should_run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: satya-classifier-log-${{ matrix.shard }}-${{ github.run_number }}
+          path: "*.log"
+          retention-days: 7
+
+
+
+      # 10. Trigger Entity Updater Instantly
+      - name: Trigger Entity Updater Instantly
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.ENTITY_UPDATER_PAT }}
+          repository: raam-07/satya-entity-library
+          event-type: trigger-entity-updater
+
+      - name: Trigger next Classifier run if remaining
+        if: ${{ steps.pre-check.outputs.should_run == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SATYA_DB_URL: ${{ secrets.SATYA_DB_URL }}
+          SATYA_DB_TOKEN: ${{ secrets.SATYA_DB_TOKEN }}
+          SHARD_ID: ${{ matrix.shard }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          python3 << 'EOF'
+          import os, urllib.request, json, subprocess
+          url = os.environ['SATYA_DB_URL'].strip().strip('\"\'').replace('libsql://', 'https://').rstrip('/')
+          token = os.environ['SATYA_DB_TOKEN'].strip().strip('\"\'')
+          shard = int(os.environ['SHARD_ID'])
+          
+          # Check remaining for this shard
+          stmt_shard = {
+              'sql': f"SELECT id FROM articles WHERE status = 'rephrased' AND (id % 13) = {shard} LIMIT 1"
+          }
+          req_shard = urllib.request.Request(
+              url + '/v2/pipeline',
+              data=json.dumps({'requests': [ { 'type': 'execute', 'stmt': stmt_shard }, { 'type': 'close' } ]}).encode('utf-8'),
+              headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+              method='POST'
+          )
+          
+          remaining_shard = 0
+          try:
+              with urllib.request.urlopen(req_shard) as r:
+                  res = json.loads(r.read().decode('utf-8'))
+                  remaining_shard = len(res['results'][0]['response']['result']['rows'])
+          except Exception as e:
+              print(f"Error checking shard remaining: {e}")
+              
+          print(f"Remaining rephrased articles for shard {shard}: {remaining_shard}")
+          
+          if remaining_shard > 0:
+              print(f"More rephrased articles remain for shard {shard}. Triggering next Classifier run...")
+              ref = "${{ github.ref_name }}"
+              repo = "${{ github.repository }}"
+              dispatch_url = f"https://api.github.com/repos/{repo}/actions/workflows/satya_classifier.yml/dispatches"
+              headers = {
+                  "Authorization": f"token {os.environ['GITHUB_TOKEN']}",
+                  "Accept": "application/vnd.github.v3+json"
+              }
+              body = json.dumps({"ref": ref, "inputs": {"shard": str(shard)}})
+              try:
+                  req = urllib.request.Request(dispatch_url, data=body.encode('utf-8'), headers=headers, method='POST')
+                  urllib.request.urlopen(req)
+                  print("Workflow dispatched successfully.")
+              except Exception as e:
+                  print(f"Failed to dispatch workflow: {e}")
+          else:
+              print(f"All rephrased articles for shard {shard} classified. Checking total remaining in database...")
+              stmt_total = {
+                  'sql': "SELECT id FROM articles WHERE status = 'rephrased' LIMIT 1"
+              }
+              req_total = urllib.request.Request(
+                  url + '/v2/pipeline',
+                  data=json.dumps({'requests': [ { 'type': 'execute', 'stmt': stmt_total }, { 'type': 'close' } ]}).encode('utf-8'),
+                  headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+                  method='POST'
+              )
+              remaining_total = 0
+              try:
+                  with urllib.request.urlopen(req_total) as r:
+                      res = json.loads(r.read().decode('utf-8'))
+                      remaining_total = len(res['results'][0]['response']['result']['rows'])
+              except Exception as e:
+                  print(f"Error checking total remaining: {e}")
+                  
+              print(f"Total remaining rephrased articles across database: {remaining_total}")
+              if remaining_total == 0:
+                  print("Database completely caught up. Revalidating all content caches...")
+                  revalidate_url = f"https://satyadheesh.in/api/revalidate?secret={os.environ['REVALIDATE_SECRET']}"
+                  try:
+                      urllib.request.urlopen(revalidate_url)
+                      print("Revalidation trigger sent.")
+                  except Exception as e:
+                      print(f"Revalidation failed: {e}")
+                      
+                  # Pre-warm cache
+                  try:
+                      urllib.request.urlopen("https://satyadheesh.in/")
+                      urllib.request.urlopen("https://satyadheesh.in/api/data?type=indiaOverview")
+                      print("Cache pre-warmed.")
+                  except Exception as e:
+                      print(f"Cache pre-warm failed: {e}")
+                      
+                  # Timeline service runs on its daily schedule at 19:00 IST
+              else:
+                  print("Some other shards are still processing. Skipping Timeline Service trigger.")
+          EOF
+
+
+
+  revalidate:
+    needs: [setup, classify]
+    if: always() && needs.classify.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Frontend Cache Revalidation
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          python3 -c "
+          import os, urllib.request
+          secret = os.environ.get('REVALIDATE_SECRET', '').strip()
+          if secret:
+              url = f'https://satyadheesh.in/api/revalidate?secret={secret}'
+              try:
+                  with urllib.request.urlopen(url) as resp:
+                      print('Revalidation succeeded:', resp.read().decode('utf-8'))
+              except Exception as e:
+                  print('Revalidation failed:', e)
+              try:
+                  urllib.request.urlopen('https://satyadheesh.in/')
+                  urllib.request.urlopen('https://satyadheesh.in/api/data?type=indiaOverview')
+                  print('Cache pre-warmed successfully.')
+              except Exception as e:
+                  print('Cache pre-warm failed:', e)
+          else:
+              print('REVALIDATE_SECRET not set in environment.')
+          "
+
+  keepalive:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native Keepalive
+        run: |
+          LAST_COMMIT=$(git log -1 --format=%ct)
+          NOW=$(date +%s)
+          DIFF=$(( (NOW - LAST_COMMIT) / 86400 ))
+          if [ "$DIFF" -gt 40 ]; then
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keepalive to prevent workflow suspension"
+            git push
+          else
+            echo "Last commit was $DIFF days ago. No keepalive needed."
+          fi
