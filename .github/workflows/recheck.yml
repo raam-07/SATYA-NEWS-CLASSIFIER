@@ -100,3 +100,15 @@ jobs:
             git add $D && git commit -qm "recheck ${{ github.run_id }} shard ${{ matrix.shard }}" && git push -q origin HEAD:$B && break
             sleep $((RANDOM % 10 + 3))
           done
+
+  refresh-site:
+    needs: recheck
+    if: always() && github.event.inputs.dry_run == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh the site's story lists
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          [ -n "$REVALIDATE_SECRET" ] || exit 0
+          curl -s -o /dev/null -w "revalidate %{http_code}\n" -A "SatyaDheesh-Orchestrator/1.0" "https://satyadheesh.in/api/revalidate?secret=$REVALIDATE_SECRET" || true
