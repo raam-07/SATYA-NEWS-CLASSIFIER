@@ -27,7 +27,7 @@ on:
         default: '13'
 
 concurrency:
-  group: classifier-recheck
+  group: classifier-recheck-${{ github.event.inputs.dry_run }}
   cancel-in-progress: false
 
 env:
