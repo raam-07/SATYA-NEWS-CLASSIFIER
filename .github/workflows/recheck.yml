@@ -25,9 +25,13 @@ on:
         description: 'Parallel runners (1-13)'
         required: false
         default: '13'
+      mode:
+        description: 'category = category + India angle; region = fill only the region (scope/state/city) of stories without one'
+        required: false
+        default: 'category'
 
 concurrency:
-  group: classifier-recheck-${{ github.event.inputs.dry_run }}
+  group: classifier-recheck-${{ github.event.inputs.mode }}-${{ github.event.inputs.dry_run }}
   cancel-in-progress: false
 
 env:
@@ -85,7 +89,8 @@ jobs:
         run: |
           DRY=""; [ "${{ github.event.inputs.dry_run }}" = "false" ] || DRY="--dry-run"
           if [ -n "${{ github.event.inputs.ids }}" ]; then SEL="--recheck-ids ${{ github.event.inputs.ids }}"; else SEL="--recheck-days ${{ github.event.inputs.days }}"; fi
-          python satya.py $SEL $DRY --shard $SHARD_ID --num-shards $NUM_SHARDS --out recheck-$SHARD_ID.jsonl
+          MODE=""; [ "${{ github.event.inputs.mode }}" = "region" ] && MODE="--recheck-region"
+          python satya.py $SEL $DRY $MODE --shard $SHARD_ID --num-shards $NUM_SHARDS --out recheck-$SHARD_ID.jsonl
       - name: Save answers
         if: always()
         run: |
